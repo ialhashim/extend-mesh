@@ -11,13 +11,12 @@ TEMPLATE = app
 TARGET = ExtendMesh
 DESTDIR = ./bin/Release
 QT += opengl xml
-CONFIG += release console
-DEFINES += QT_LARGEFILE_SUPPORT QT_XML_LIB QT_OPENGL_LIB
+CONFIG += qt release console
+DEFINES += QT_XML_LIB QT_OPENGL_LIB QT_DLL
+
 INCLUDEPATH += ./GeneratedFiles \
     ./GeneratedFiles/Release \
-    $(QGLVIEWERROOT) \
-    ./Solver/SparseLib++/include \
-    ./Solver/SparseLib++/iml \
+    . \
     ./GraphicsLibrary \
     ./BezierSpline \
     ./Skeleton \
@@ -25,12 +24,9 @@ INCLUDEPATH += ./GeneratedFiles \
     ./TextureSynthesis \
     ./GeometrySynthesis \
     ./GUI \
-    .
-LIBS += -lopengl32 \
-    -lglu32 \
-    -lSolver/SparseLib++/lib/sparselib \
-    -l$(QGLVIEWERROOT)/QGLViewer/release/QGLViewer2 \
-    -llib/GLee
+    ./Solver/SparseLib++/iml \
+    ./Solver/SparseLib++/include
+
 DEPENDPATH += .
 MOC_DIR += ./GeneratedFiles/release
 OBJECTS_DIR += release
@@ -38,3 +34,18 @@ UI_DIR += ./GeneratedFiles
 RCC_DIR += ./GeneratedFiles
 include(ExtendMesh.pri)
 win32:RC_FILE = ExtendMesh.rc
+
+win32{
+    LIBS += -llib/GLee \
+    -llib/QGLViewer2 \
+    -lopengl32 \
+    -lglu32 \
+    -lSolver/SparseLib++/lib/sparselib
+}
+
+!win32 {
+    #QMAKE_CXXFLAGS += -std=c++0x
+    QMAKE_CXXFLAGS+=-fopenmp
+    QMAKE_LFLAGS *= -fopenmp
+    LIBS += -lGLEW -lGLU -lGL -lQGLViewer -lsparse
+}
