@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExtendMesh", "ExtendMesh.vcproj", "{CF362836-389C-45D6-8779-6B803CDD4EE2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sparselib", "Solver\SparseLib++\sparselib.vcproj", "{446A7FE3-BEA2-4B05-AD44-0E8FA8BC8ED5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CF362836-389C-45D6-8779-6B803CDD4EE2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CF362836-389C-45D6-8779-6B803CDD4EE2}.Debug|Win32.Build.0 = Debug|Win32
+		{CF362836-389C-45D6-8779-6B803CDD4EE2}.Release|Win32.ActiveCfg = Release|Win32
+		{CF362836-389C-45D6-8779-6B803CDD4EE2}.Release|Win32.Build.0 = Release|Win32
+		{446A7FE3-BEA2-4B05-AD44-0E8FA8BC8ED5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{446A7FE3-BEA2-4B05-AD44-0E8FA8BC8ED5}.Debug|Win32.Build.0 = Debug|Win32
+		{446A7FE3-BEA2-4B05-AD44-0E8FA8BC8ED5}.Release|Win32.ActiveCfg = Release|Win32
+		{446A7FE3-BEA2-4B05-AD44-0E8FA8BC8ED5}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="ExtendMesh">
+    <file>Resources/cross_sections.png</file>
+    <file>Resources/eyeExten.png</file>
+    <file>Resources/eye.png</file>
+    <file>Resources/wireframeExten.png</file>
+    <file>Resources/open1.png</file>
+    <file>Resources/open2.png</file>
+    <file>Resources/power_off.png</file>
+    <file>Resources/save.png</file>
+    <file>Resources/saveScript.png</file>
+    <file>Resources/wireframe.png</file>
+    <file>Resources/app.ico</file>
+  </qresource>
+</RCC>

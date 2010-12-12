@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ExtendMeshClass</class>
+ <widget class="QMainWindow" name="ExtendMeshClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Extend Mesh</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="extendMesh.qrc">
+    <normaloff>:/ExtendMesh/Resources/app.ico</normaloff>:/ExtendMesh/Resources/app.ico</iconset>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="margin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="Viewer" name="viewer" native="true"/>
+    </item>
+    <item>
+     <widget class="Commander" name="commander" native="true"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveMesh"/>
+    <addaction name="actionSaveScript"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionToggleMeshVisible"/>
+    <addaction name="actionToggleMeshWireframe"/>
+    <addaction name="separator"/>
+    <addaction name="actionSwitchCamera"/>
+    <addaction name="separator"/>
+    <addaction name="actionChangeRenderStyle"/>
+   </widget>
+   <widget class="QMenu" name="menuSmoothing">
+    <property name="title">
+     <string>Smoothing</string>
+    </property>
+    <addaction name="actionLaplacianSmoothing"/>
+    <addaction name="actionMeanCurvatureFlow"/>
+   </widget>
+   <widget class="QMenu" name="menuExtensions">
+    <property name="title">
+     <string>Extensions</string>
+    </property>
+    <addaction name="actionLoadUserCurve"/>
+    <addaction name="separator"/>
+    <addaction name="actionToggleExtenShowAll"/>
+    <addaction name="actionToggleExtenWireframe"/>
+    <addaction name="actionToggleExtenColoredPatches"/>
+    <addaction name="actionToggleExtenCrossSections"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
+   <addaction name="menuSmoothing"/>
+   <addaction name="menuExtensions"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionOpen"/>
+   <addaction name="separator"/>
+   <addaction name="actionToggleMeshVisible"/>
+   <addaction name="actionToggleMeshWireframe"/>
+   <addaction name="actionSaveMesh"/>
+   <addaction name="actionSaveScript"/>
+   <addaction name="separator"/>
+   <addaction name="actionLoadUserCurve"/>
+   <addaction name="actionToggleExtenShowAll"/>
+   <addaction name="actionToggleExtenWireframe"/>
+   <addaction name="actionToggleExtenCrossSections"/>
+  </widget>
+  <widget class="QDockWidget" name="sideBarDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="SideBar" name="sideBar"/>
+  </widget>
+  <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/open2.png</normaloff>:/ExtendMesh/Resources/open2.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open..</string>
+   </property>
+  </action>
+  <action name="actionSaveMesh">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/save.png</normaloff>:/ExtendMesh/Resources/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save mesh...</string>
+   </property>
+  </action>
+  <action name="actionSaveScript">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/saveScript.png</normaloff>:/ExtendMesh/Resources/saveScript.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save script</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/power_off.png</normaloff>:/ExtendMesh/Resources/power_off.png</iconset>
+   </property>
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionToggleMeshWireframe">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/wireframe.png</normaloff>:/ExtendMesh/Resources/wireframe.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show / hide wireframe</string>
+   </property>
+  </action>
+  <action name="actionSwitchCamera">
+   <property name="text">
+    <string>Switch camera type</string>
+   </property>
+  </action>
+  <action name="actionChangeRenderStyle">
+   <property name="text">
+    <string>Change render style</string>
+   </property>
+  </action>
+  <action name="actionLaplacianSmoothing">
+   <property name="text">
+    <string>Laplacian Smoothing</string>
+   </property>
+  </action>
+  <action name="actionMeanCurvatureFlow">
+   <property name="text">
+    <string>Mean Curvature Flow</string>
+   </property>
+  </action>
+  <action name="actionToggleExtenShowAll">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/eyeExten.png</normaloff>:/ExtendMesh/Resources/eyeExten.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show / hide all</string>
+   </property>
+  </action>
+  <action name="actionToggleExtenWireframe">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/wireframeExten.png</normaloff>:/ExtendMesh/Resources/wireframeExten.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show / hide wireframe</string>
+   </property>
+  </action>
+  <action name="actionToggleExtenColoredPatches">
+   <property name="text">
+    <string>Show / hide false colored patches</string>
+   </property>
+  </action>
+  <action name="actionToggleExtenCrossSections">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/cross_sections.png</normaloff>:/ExtendMesh/Resources/cross_sections.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show / hide cross-sections</string>
+   </property>
+  </action>
+  <action name="actionLoadUserCurve">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/open1.png</normaloff>:/ExtendMesh/Resources/open1.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load user curve...</string>
+   </property>
+  </action>
+  <action name="actionToggleMeshVisible">
+   <property name="icon">
+    <iconset resource="extendMesh.qrc">
+     <normaloff>:/ExtendMesh/Resources/eye.png</normaloff>:/ExtendMesh/Resources/eye.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show / hide mesh</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>Viewer</class>
+   <extends>QWidget</extends>
+   <header>GUI/Viewer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Commander</class>
+   <extends>QWidget</extends>
+   <header>GUI/Commander.h</header>
+   <container>1</container>
+   <slots>
+    <slot>OpenMesh()</slot>
+    <slot>ToggleWireframe()</slot>
+    <slot>ToggleHeightPoints()</slot>
+    <slot>ToggleVisible()</slot>
+    <slot>SmoothRegular()</slot>
+    <slot>SmoothCurvature()</slot>
+    <slot>ToggleCameraProjection()</slot>
+    <slot>ToggleShowHideAllDF()</slot>
+    <slot>ToggleShowAsNormalizedPoints()</slot>
+    <slot>SelectModeReconstructedPoints()</slot>
+    <slot>ToggleShowDisplacements()</slot>
+    <slot>ToggleShowCrossSections()</slot>
+    <slot>ToggleSkelUserFriendly()</slot>
+    <slot>ToggleShowGridMesh()</slot>
+    <slot>OutputGridMesh()</slot>
+    <slot>SaveScript()</slot>
+    <slot>ToggleWireframeGridMesh()</slot>
+    <slot>LoadUserCurve()</slot>
+    <slot>ChangeBackgroundColor()</slot>
+    <slot>ChangeRenderStyle()</slot>
+    <slot>InfoMesh()</slot>
+    <slot>ToggleShowColoredPatches()</slot>
+    <slot>SaveMesh()</slot>
+    <slot>OpenSkeleton()</slot>
+    <slot>ShowHideSkeleton()</slot>
+    <slot>OpenMeshWithSkeleton()</slot>
+    <slot>CreateCylindricalParam()</slot>
+    <slot>ToggleProjections()</slot>
+    <slot>ToggleRefVectors()</slot>
+    <slot>SmoothSelectedEdges()</slot>
+    <slot>ToggleShowHideAllCP()</slot>
+    <slot>Synthesize()</slot>
+    <slot>Extend()</slot>
+    <slot>CreateDisplacementField()</slot>
+    <slot>TestSlicer()</slot>
+    <slot>ToggleShowNormals()</slot>
+    <slot>MoveVertex()</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>SideBar</class>
+   <extends>QWidget</extends>
+   <header>GUI/SideBar.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="extendMesh.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>actionQuit</sender>
+   <signal>triggered()</signal>
+   <receiver>ExtendMeshClass</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionOpen</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>OpenMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>548</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionToggleMeshWireframe</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>ToggleWireframe()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>548</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionToggleMeshVisible</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>ToggleVisible()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>548</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionToggleExtenWireframe</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>ToggleWireframeGridMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>548</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mainToolBar</sender>
+   <signal>actionTriggered(QAction*)</signal>
+   <receiver>viewer</receiver>
+   <slot>update()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>37</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>186</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionLaplacianSmoothing</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>SmoothRegular()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>548</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionMeanCurvatureFlow</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>SmoothCurvature()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>548</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionToggleExtenCrossSections</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>ToggleShowCrossSections()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>551</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSaveMesh</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>SaveMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>551</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSaveScript</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>SaveScript()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>551</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionToggleExtenShowAll</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>ToggleShowGridMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>551</x>
+     <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
