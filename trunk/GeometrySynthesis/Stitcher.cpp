@@ -15,7 +15,7 @@ Stitcher::Stitcher(GridMesh * srcGridMesh, bool isFillSeams)
 	
 	if(tri_patch->size() < 2)	return;
 
-	int startTime = clock();
+	CreateTimer(timer);
 
 	// Find seams between patches
 	printf("\nFinding Seams..");
@@ -61,7 +61,7 @@ Stitcher::Stitcher(GridMesh * srcGridMesh, bool isFillSeams)
 	//M->isShowFaceNormals = true;
 	//M->isFlatShade = true;
 
-        printf("\n\nBlending done (%d ms).\n", (int)clock() - startTime);
+        printf("\n\nBlending done (%d ms).\n", (int)timer.elapsed());
 }
 
 int Stitcher::StageOne(Mesh * mesh, Vector<int> & boundry)
@@ -350,7 +350,7 @@ int Stitcher::FairSeams(int numIterations)
 	Mesh * M = seams[0].M;
 
 	// Deal with 'cap' triangles:
-	double lamda_max = (2.0 / 3.0) * M_PI;	// 150°
+	double lamda_max = (2.0 / 3.0) * M_PI;	// 150
 	double lamda_min = M_PI / 18.0;			// 10 deg
 
 	for(int si = 0; si < numIterations; si++)

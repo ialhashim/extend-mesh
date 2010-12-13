@@ -2,6 +2,8 @@
 
 #include "Macros.h"
 
+#include <QElapsedTimer>
+
 // Vector library & operations
 #include <QGLViewer/quaternion.h>
 using namespace qglviewer;

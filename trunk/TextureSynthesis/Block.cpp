@@ -81,7 +81,7 @@ namespace Synth
 				}
 			}
 			char fileName [125];
-			sprintf(fileName, "mask_%d_%d.png", (int)type, clock());
+			sprintf(fileName, "mask_%d_%d.png", (int)type, xxxxx);
 			img->save(fileName);
 			*/
 		}

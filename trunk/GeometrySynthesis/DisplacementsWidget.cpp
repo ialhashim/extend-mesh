@@ -312,9 +312,9 @@ void DisplacementsWidget::CreateDF()
 void DisplacementsWidget::DirectSynthesize()
 {
 	Print("Synthesize extension..");
-	int allStartTime = clock();
+        CreateTimer(allTimer);
 
-	int startTime = clock();
+        CreateTimer(textureTimer);
         printf("\nTexture synthesis (band size %d)", band_size->value());
 
 	df->setVisibility(false);
@@ -378,8 +378,9 @@ void DisplacementsWidget::DirectSynthesize()
 	stats["textureSynthesis"].end();
 
 	// Timing for Texture synthesis
-        printf(".Done (%d ms)", (int)clock() - startTime);
-	startTime = clock();
+        printf(".Done (%d ms)", (int)textureTimer.elapsed());
+
+        CreateTimer(extentionTimer);
 	printf("\n\n\n==========\nCreate extension..\n");
 
 	int midSkeleIndex = skeleton->originalSelectedEdges.size() / 2;
@@ -424,15 +425,13 @@ void DisplacementsWidget::DirectSynthesize()
 	Mesh * m = getMesh("LoadedMesh");
 
 	// Timing
-        printf("\n\nDone (%d ms)\n==========\n\n", (int)clock() - startTime);
+        printf("\n\nDone (%d ms)\n==========\n\n", (int)extentionTimer.elapsed());
 
-        startTime = (int)clock();
+        CreateTimer(sliceTimer);
 	printf("Slicing and moving..");
 
 	if(!isMeshCut)
 	{
-		startTime = clock();
-
 		// slice the mesh
 		Plane slicePlane = df->GetGrid()->getMidPlane();
                 Vector<int> selectedFaces = skeleton->getSelectedFaces();
@@ -471,8 +470,8 @@ void DisplacementsWidget::DirectSynthesize()
 	// Transform half mesh
 	Transform3D::transformVertices(m, halfMesh, gm->endTransform());
 
-        printf("done slice/move (%d ms).", (int)clock() - startTime);
-	startTime = clock();
+        printf("done slice/move (%d ms).", (int)sliceTimer.elapsed());
+        CreateTimer(otherTimer);
 	printf(".Remaining..");
 
 	// Set render options
@@ -486,9 +485,9 @@ void DisplacementsWidget::DirectSynthesize()
 	mainWindow->ui.viewer->setSceneRadius(m->radius);
 	mainWindow->ui.viewer->update();
 
-        printf("Synthesize extension Done. (%d ms)", (int)clock() - startTime);
+        printf("done remaining (%d ms). Synthesize extension Done.\n", (int)otherTimer.elapsed());
 
-	QString timeAsString; timeAsString.sprintf("Synthesis Done. (%.2f s)", (clock() - allStartTime) / 1000.0f);
+        QString timeAsString; timeAsString.sprintf("Synthesis Done. (%.2f s)", ((int)allTimer.elapsed()) / 1000.0f);
 	Print(timeAsString, 1000);
 
 	stats["extendAmount"] = Stats("Amount of extension", 
@@ -509,7 +508,7 @@ void DisplacementsWidget::DirectSynthesize()
 
 void DisplacementsWidget::Triangulate()
 {
-	int startTime = clock();
+        CreateTimer(outputTimer);
 	printf("\nMerging & Outputting...");
 
 	// Get the mesh
@@ -655,6 +654,8 @@ void DisplacementsWidget::Triangulate()
 	foreach(Face *f, detachFacesB) removeSet.insert(f->index);
 
 	outMesh.removeAllFaces(removeSet);
+
+        printf("\n\nOutput Done. (%d ms)\n=========\n", (int)outputTimer.elapsed());
 	
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Output Mesh"), "", tr("OBJ (*.obj)"));
 
@@ -673,7 +674,6 @@ void DisplacementsWidget::Triangulate()
 
 	mainWindow->ui.viewer->saveSnapshot(fileName + "_screenshot.bmp", true);
 
-        printf("\n\nOutput Done. (%d ms)\n=========\n", (int)clock() - startTime);
 }
 
 void DisplacementsWidget::Print(QString message, int age)

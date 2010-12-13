@@ -3,7 +3,7 @@
 
 void Smoother::LaplacianSmoothing(Mesh * m, StdSet<Face*> & faceList, int numIteration, bool protectBorders)
 {
-	int startTime = clock();
+        CreateTimer(timer);
 	printf("\nPerforming Laplacian smoothing (iterations = %d)...", numIteration);
 
 	if(protectBorders)
@@ -61,7 +61,7 @@ void Smoother::LaplacianSmoothing(Mesh * m, StdSet<Face*> & faceList, int numIte
 		}
 	}
 
-        printf("done. (%d ms)\n", (int)clock() - startTime);
+        printf("done. (%d ms)\n", (int)timer.elapsed());
 }
 
 void Smoother::LaplacianSmoothing(Mesh * m, int numIteration, bool protectBorders)
@@ -240,7 +240,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 {
 	if(step == 0.0)	return;
 
-	int startTime = clock();
+        CreateTimer(timer);
 	printf("\n\nPerforming Mean Curvature Flow smoothing (iterations = %d, step = %f)...", numIteration, step);
 
 	mesh->flagBorderVertices();
@@ -354,7 +354,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 		// Precondition
 		DiagPreconditioner_double precond(A);
 		
-		int solveTime = clock();
+                CreateTimer(solveTime);
 		printf("\nSolving..");
 
 		// Solve
@@ -379,7 +379,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 			}
 		}
 
-                printf("\nSolve time = %d ms\n", (int)clock() - solveTime);
+                printf("\nSolve time = %d ms\n", (int)solveTime.elapsed());
 
 		Vec center = mesh->computeCenter();
 
@@ -406,7 +406,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 	
 	}
 
-        printf("Smoothing done. (%d ms)\n", (int)clock() - startTime);
+        printf("Smoothing done. (%d ms)\n", (int)timer.elapsed());
 
 	mesh->computeNormals();
 	mesh->computeBounds();
@@ -416,7 +416,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 
 void Smoother::MeanCurvatureFlowExplicit(Mesh * mesh, double step, int numIteration)
 {
-	int startTime = clock();
+        CreateTimer(timer);
 	printf("\n\nPerforming Mean Curvature Flow smoothing (Explicit, iterations = %d)...", numIteration);
 	Vector<Umbrella> * U;
 
@@ -502,7 +502,7 @@ void Smoother::MeanCurvatureFlowExplicit(Mesh * mesh, double step, int numIterat
 		mesh->translate(center);
 	}
 
-        printf(" done. (%d ms)\n", (int)clock() - startTime);
+        printf(" done. (%d ms)\n", (int)timer.elapsed());
 
 	mesh->computeNormals();
 	mesh->computeBounds();

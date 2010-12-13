@@ -6,14 +6,17 @@
 #include <map>
 #include "float.h"
 
+#define Vector std::vector
+#define StdMap std::map
+typedef std::map<float, bool> CheckList;
+
 // Eigen library
 #include <Eigen/Core>
 using namespace Eigen;
 
-#define Vector std::vector
-#define StdMap std::map
-
-typedef std::map<float, bool> CheckList;
+// Qt Timer
+#define Timer QElapsedTimer
+#define CreateTimer(timer)  QElapsedTimer timer; timer.start()
 
 extern int BlockSize;
 extern int BandSize;

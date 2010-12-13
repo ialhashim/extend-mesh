@@ -391,8 +391,7 @@ void Mesh::loadFromFile(const char* fileName)
 {
 	isReady = false;
 
-	int startTime = 0;
-	int allStartTime = clock();
+        CreateTimer(allStartTime);
 
 	printf("Loading...(%s)\n", fileName);
 
@@ -454,22 +453,22 @@ void Mesh::loadFromFile(const char* fileName)
 	normalizeScale();
 
 	// Normals
-	printf("\nComputing Normals.."); startTime = clock();
+        printf("\nComputing Normals.."); CreateTimer(normalTimer);
 	computeNormals();
-        printf("Done (%d ms).\n", (int)clock() - startTime);
+        printf("Done (%d ms).\n", (int)normalTimer.elapsed());
 
 	// VBO representation
-	printf("Creating VBO object.."); startTime = clock();
+        printf("Creating VBO object.."); CreateTimer(vboTimer);
 	createVBO();
-        printf("Done (%d ms).\n", (int)clock() - startTime);
+        printf("Done (%d ms).\n", (int)vboTimer.elapsed());
 
 	// Umbrella structure
-	printf("Collecting Umbrellas.."); startTime = clock();
+        printf("Collecting Umbrellas.."); CreateTimer(umbrellasTimer);
 	getUmbrellas();
-        printf("Done (%d ms).\n", (int)clock() - startTime);
+        printf("Done (%d ms).\n", (int)umbrellasTimer.elapsed());
 
         printf("\n\t V = \t%d\tF = \t%d\n", (int)vertex.size(), (int)face.size());
-        printf("\nMesh file loaded successfully. (%d ms)\n", (int)clock() - allStartTime);
+        printf("\nMesh file loaded successfully. (%d ms)\n", (int)allStartTime.elapsed());
 
 	isReady = true;
 }

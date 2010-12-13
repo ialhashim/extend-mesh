@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QElapsedTimer>
 #include <stdio.h>
 #include <time.h>
 
@@ -9,8 +10,8 @@ class Stats
 private:
 	QString label;
 	
-	clock_t startTime;
-	clock_t time;
+        QElapsedTimer timer;
+        int time;
 
 	bool noTime;
 	double value;
