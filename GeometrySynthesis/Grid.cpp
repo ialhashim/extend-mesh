@@ -320,7 +320,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 		sections[v] = CrossSection(v, this);
 	// end preprocess.
 
-	int startTime = clock();
+        CreateTimer(timer);
 	printf("Building Octrees..");
 
 	Mesh * base = stair->mostBaseMesh();
@@ -333,7 +333,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 	grid_octree.build();
 	detailed_octree.build();
 
-	printf("Done (%d ms).", (int)clock() - startTime);
+        printf("Done (%d ms).", (int)timer.elapsed());
 
 	this->selectedFaces = selectedMeshFaces;
 
@@ -350,7 +350,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 	int N = activePoints.size();
 
 	// Timing
-	startTime = clock();
+        CreateTimer(projectionTimer);
 	printf(".(Number of Points = %d).", N);
 
 	stats["gridifiy"] = Stats("Projecting points (Gridify)");
@@ -461,13 +461,14 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 		squaresMap[Point(s.u, s.v)] = s;
 	}
 
-	printf("Point projections done (%d ms).", (int)clock() - startTime);
-	startTime = clock();
+        printf("Point projections done (%d ms).", (int)projectionTimer.elapsed());
 
+        CreateTimer(squaresTimer);
 	printf("Computing square values..");
+
 	this->computeSquareValues();
 
-	printf("done (%d ms).", (int)clock() - startTime);
+        printf("done (%d ms).", (int)squaresTimer.elapsed());
 
 	this->isReady = true;
 }
@@ -734,11 +735,12 @@ void Grid::drawAsGrid()
 	// Draw cross-sections
 	//for(int i = 0; i < sections.size(); i++)
 	//	sections[i].draw(3.0);
-	/*for(int i = 0; i < polygon.size(); i++)
+        for(int i = 0; i < (int)polygon.size(); i++)
 	{
 		localFrames[i].draw(spinePoints[i]);
 		polygon[i].draw();
-	} return;*/
+        }
+        //return;
 
 	/*if(grid_octree)
 	{

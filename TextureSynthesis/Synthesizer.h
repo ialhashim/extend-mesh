@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QThread>
+#include <QElapsedTimer>
 
 #include "Globals.h"
 #include "Block.h"

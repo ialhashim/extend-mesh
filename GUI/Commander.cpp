@@ -334,7 +334,7 @@ void Commander::LoadScript()
 
 	if(!file.is_open())	return;
 
-	int startTime = clock();
+        CreateTimer(timer);
 	printf("\n=========\nExecuting script file..\n");
 
 	// Selection
@@ -389,7 +389,7 @@ void Commander::LoadScript()
 		df_widget->DirectSynthesize();
 	}
 
-        printf("\n\nScript file done. (%d ms)\n=========\n", (int)(clock() - startTime));
+        printf("\n\nScript file done. (%d ms)\n=========\n", (int)timer.elapsed());
 }
 
 void Commander::LoadUserCurve()

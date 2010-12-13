@@ -321,7 +321,7 @@ void GridMesh::Triangulate()
 	Mesh * mesh = grid->getBaseMesh();
 
 	// Copying triangulation from mesh
-	int startTime = clock();
+	CreateTimer(timer);
 
 	// Get triangles that are in current patch
 	Vector<int> faces = *grid->getSelectedFaces();
@@ -375,15 +375,15 @@ void GridMesh::Triangulate()
 		}
 	}
 
-        printf(".Triangulated patches done. (%d ms)\n", (int)clock() - startTime);
-	startTime = clock();
+        printf(".Triangulated patches done. (%d ms)\n", (int)timer.elapsed());
+        CreateTimer(patchTimer);
 
 	// Create patches as triangulated meshes
 	#pragma omp parallel for
         for(int w = 0; w < (int)tri_patch.size(); w++)
 		tri_patch[w].makeMesh();
 
-        printf(".Finalizing patches. (%d ms)\n", (int)clock() - startTime);
+        printf(".Finalizing patches. (%d ms)\n", (int)patchTimer.elapsed());
 
 	isDrawTriangulated = true;
 
@@ -400,11 +400,11 @@ void GridMesh::BlendPatches()
 	// Reconstruction (interpolation):
 	if(isSampleSeams)
 	{
-		int startTime = clock();
+		CreateTimer(timer);
 
 		recon = new Reconstructor(this);
 
-                printf("\n.Reconstructor. (%d ms)\n", (int)clock() - startTime);
+                printf("\n.Reconstructor. (%d ms)\n", (int)timer.elapsed());
 	}
 
 	// Using cross-sections blending
@@ -421,7 +421,7 @@ void GridMesh::BlendPatches()
 void GridMesh::CreateFullPatches()
 {
 	printf("\nfp b/d Mesh(es)..");
-	int startTime = clock();
+	CreateTimer(timer);
 
 	Vector<SimpleSquare> fullPatchStarts;
 
@@ -540,12 +540,12 @@ void GridMesh::CreateFullPatches()
 		tri_patch[i].fpdMesh.computeNormals();
 	}
 
-        printf(".Done (%d ms).\n", (int)clock() - startTime);
+        printf(".Done (%d ms).\n", (int)timer.elapsed());
 }
 
 void GridMesh::getAllPatches()
 {
-	int startTime = clock();
+	CreateTimer(timer);
 
 	Vector<SimpleSquare> curr_patch = getNextPatch();
 
@@ -566,7 +566,7 @@ void GridMesh::getAllPatches()
 
 	if(isSampleSeams)
 	{
-		startTime = clock();
+                CreateTimer(borderTimer);
 
                 #pragma omp parallel for
                 for(int i = 0; i < (int)tri_patch.size(); i++)
@@ -575,10 +575,10 @@ void GridMesh::getAllPatches()
 			tri_patch[i].unrolledPatch = unroll(tri_patch[i].patch, tri_patch[i].start_x, tri_patch[i].start_y);
 			tri_patch[i].border = findPatchBorders(tri_patch[i].unrolledPatch, 2);
 		}
-                printf(".Border (%d).", (int)clock() - startTime);
+                printf(".Border (%d).", (int)borderTimer.elapsed());
 	}
 
-        printf(".Patches found (%d) (%d ms).", tri_patch.size(), (int)clock() - startTime);
+        printf(".Patches found (%d) (%d ms).", tri_patch.size(), (int)timer.elapsed());
 }
 
 Vector<SimpleSquare> GridMesh::getNextPatch()

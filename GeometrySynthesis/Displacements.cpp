@@ -8,12 +8,12 @@ Displacements::Displacements(Mesh * source, Skeleton * srcSkeleton, int numberSt
 	this->sourceMesh = source;
 	this->skeleton = srcSkeleton;
 
-	int startTime = clock();
+        CreateTimer(timer);
 
 	// Create smooth stairway structure
 	stair = SmoothStairway(source, numberSteps, numIteration, smoothStepSize, isVolumePreserve);
 
-	printf("\n\n\nSmooth stairway time (%d ms).\n", (int)clock() - startTime);
+        printf("\n\n\nSmooth stairway time (%d ms).\n", (int)timer.elapsed());
 
 	this->isVisible = true;
 	this->isUserFriendly = false;
@@ -24,7 +24,7 @@ Displacements::Displacements(Mesh * source, Skeleton * srcSkeleton, int numberSt
 
 void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate, int rRotate)
 {
-	int startTimeAll = clock();
+        CreateTimer(allTimer);
 	printf("\nComputing field for selection..\n");
 
 	// Get faces and points of selected part
@@ -48,9 +48,6 @@ void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate,
 	for(int i = 0; i < (int)skeletonPoints.size() - 1; i++)
 		gridLength += Vec(skeletonPoints[i] - skeletonPoints[i+1]).norm();
 
-
-	int startTime = clock();
-
 	// Figure out maximum point on base surface to use as radius (there might be a faster way)
 	HistogramFloat histogram (1);
 	skeleton->sampleProjectPoints(0.75f, stair.mostBaseMesh(), points, &histogram);
@@ -60,14 +57,13 @@ void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate,
 	if(radius <= 0.0f)	
 		radius = stair.mostDetailedMesh()->radius * 0.1; // just in case...
 
-	printf("CP time (radius = %.2f, %d ms).", radius, (int)clock() - startTime);
-	startTime = clock();
+        CreateTimer(gridTimer);
 
 	// CREATE GRID
 	grid = Grid(skeletonPoints, radius, gridLength, gridSquareSize, &stair, meshFaces,lRotate, rRotate);
 
-	printf(".Grid time (%d ms).", (int)clock() - startTime);
-	startTime = clock();
+        printf(".Grid time (%d ms).", (int)gridTimer.elapsed());
+        CreateTimer(fitTimer);
 
 	// FIT GRID
 	switch(fitMethod)
@@ -82,17 +78,17 @@ void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate,
 		grid.FitNothing( );
 	}
 
-	printf(".Fit time (%d ms).", (int)clock() - startTime);
-	startTime = clock();
+        printf(".Fit time (%d ms).", (int)fitTimer.elapsed());
+        CreateTimer(gridifyTimer);
 
 	// Assign detailed mesh points into cylindrical grid cells
         //grid.Gridify( selectedFaces );
 
 	isReady = true;
 
-	printf(".total Gridify time = %d ms\n", (int)clock() - startTime);
+        printf(".total Gridify time = %d ms\n", (int)gridifyTimer.elapsed());
 
-	printf("\n\nField time = %d ms\n=======\n", (int)clock() - startTimeAll);
+        printf("\n\nField time = %d ms\n=======\n", (int)allTimer.elapsed());
 }
 
 Grid * Displacements::GetGrid()

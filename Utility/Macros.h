@@ -103,3 +103,7 @@ template <typename T> static inline StdSet<T> LIST_TO_SET(StdList<T> fromList){
 #define MaxElement(v) (*max_element(v.begin(), v.end()))
 #define MinElement(v) (*min_element(v.begin(), v.end()))
 #define DivideVector(a,value) for(int i = 0; i < a.size(); ++i) a[i] /= value;
+
+// Timer
+#define Timer QElapsedTimer
+#define CreateTimer(timer)  QElapsedTimer timer; timer.start()

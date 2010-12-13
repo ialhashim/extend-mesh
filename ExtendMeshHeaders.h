@@ -12,6 +12,7 @@
 #include <QColor>
 #include <QImage>
 #include <QPixmap>
+#include <QElapsedTimer>
 
 // Our classes
 #include "Mesh.h"

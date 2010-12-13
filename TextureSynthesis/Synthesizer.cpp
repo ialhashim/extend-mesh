@@ -133,22 +133,13 @@ void Synthesizer::synthesizeNext()
 
 	BlockType foundType = getBlockType();
 
-	int startTime = clock();
-	
 	ReducedSet set = getMatchingBlocks(foundType);
-	
-	//printf("set time = %d ms ", clock() - startTime);
-	//printf("(%d), ", set.size());
 
 	if(set.size())
 	{
-		startTime = clock();
 		Block best_block = getBestBlock( set );
-		//printf("Best time = %d ms, ", clock() - startTime);
 
-		startTime = clock();
-		best_block.paste(cur_x, cur_y, &target, &targetAsPos);
-		//printf("paste time = %d ms\n", clock() - startTime);
+                best_block.paste(cur_x, cur_y, &target, &targetAsPos);
 	}
 }
 

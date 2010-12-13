@@ -5,10 +5,7 @@
 Stats::Stats( QString stat_label)
 {
 	this->label = stat_label;
-
-	startTime = 0;
 	time = 0;
-
 	noTime = false;
 
 	start();
@@ -17,7 +14,6 @@ Stats::Stats( QString stat_label)
 Stats::Stats()
 {
 	this->label = "NOTHING";
-	startTime = 0;
 	time = 0;
 	noTime = false;
 }
@@ -25,23 +21,19 @@ Stats::Stats()
 Stats::Stats( QString stat_label, double newValue )
 {
 	this->label = stat_label;
-
-	startTime = 0;
 	time = 0;
-
 	noTime = true;
-
 	value = newValue;
 }
 
 void Stats::start()
 {
-	this->startTime = clock();
+        this->timer.start();
 }
 
 void Stats::end()
 {
-	this->time = clock() - this->startTime;
+        this->time = (int)timer.elapsed();
 }
 
 void Stats::print()
@@ -63,7 +55,7 @@ double Stats::getValue()
 	if(noTime)
 		return value;
 	else
-		return (double) time;
+                return (double) time;
 }
 
 QString Stats::getLabel()

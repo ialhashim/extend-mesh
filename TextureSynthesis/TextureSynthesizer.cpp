@@ -32,7 +32,7 @@ void TextureSynthesizer::init(MatrixXf source, int synthWidth, int blockSize, in
 
 void TextureSynthesizer::run()
 {
-	int startTime = clock();
+	CreateTimer(timer);
 
 	s->start();
 
@@ -47,7 +47,7 @@ void TextureSynthesizer::run()
 
 	// Show final result
 	update(QPixmap::fromImage(Matrixf::imageFromMatrix(s->result())));
-	print("Done! (" + QString::number(clock() - startTime) + QString(" ms)"));
+        print("Done! (" + QString::number(timer.elapsed()) + QString(" ms)"));
 	
 	// save it as our output
 	this->output = s->result();
