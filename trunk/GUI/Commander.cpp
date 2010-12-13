@@ -367,7 +367,7 @@ void Commander::LoadScript()
 		if(inputLine.length() > 5)
 		{
 			Vec v;
-			sscanf(inputLine.c_str(),"%f %f %f", &v.x, &v.y, &v.z);
+                        sscanf(inputLine.c_str(),"%lf %lf %lf", &v.x, &v.y, &v.z);
 			user_curve->spline.AddSplinePoint(v);
 		}
 	}
@@ -412,7 +412,7 @@ void Commander::LoadUserCurve()
 			if(inputLine.length() > 5)
 			{
 				Vec v;
-				sscanf(inputLine.c_str(),"%f %f %f", &v.x, &v.y, &v.z);
+                                sscanf(inputLine.c_str(),"%lf %lf %lf", &v.x, &v.y, &v.z);
 				user_curve->spline.AddSplinePoint(v);
 			}
 		}

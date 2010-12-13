@@ -86,7 +86,7 @@ void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate,
 	startTime = clock();
 
 	// Assign detailed mesh points into cylindrical grid cells
-	grid.Gridify( selectedFaces );
+        //grid.Gridify( selectedFaces );
 
 	isReady = true;
 

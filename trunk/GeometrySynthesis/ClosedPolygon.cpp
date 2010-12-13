@@ -189,14 +189,14 @@ Vector<Vec> ClosedPolygon::getEqualDistancePoints(int numSides, const Vec& cente
 
 	// Locate start point using vecUp
 	Vec p1, p2, startPoint;
-	int startIndex = -1;
+        int startIndex = 0;
 	Line referenceLine(center, center + vecUp); // long line
 
 	// Hack, vector Up should already be projected on the plane?
-	this->plane.projectLine(referenceLine);
+        //this->plane.projectLine(referenceLine);
 
 	// Debug:
-	//testLines1.push_back(referenceLine.colored(Color4(255,255,255)));
+        testLines1.push_back(referenceLine.colored(Color4(255,255,255)));
 
 	int lastIndex = 0;
 
@@ -219,8 +219,7 @@ Vector<Vec> ClosedPolygon::getEqualDistancePoints(int numSides, const Vec& cente
 	}
 
 	double minDistCenter = DBL_MAX;
-	double minLength = DBL_MAX;
-	int indexClosestCenter = startIndex;
+        double minLength = DBL_MAX;
 
 	// Check for closest to ref line in previous encounters
 	for(HashMap<int, Line>::iterator it = lineDists.begin(); it != lineDists.end(); it++)
