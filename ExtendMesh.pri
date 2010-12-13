@@ -4,7 +4,6 @@
 
 HEADERS += ./extendMesh.h \
     ./GraphicsLibrary/BoundingBox.h \
-    ./resource.h \
     ./GraphicsLibrary/Circle.h \
     ./GraphicsLibrary/Edge.h \
     ./GraphicsLibrary/Face.h \

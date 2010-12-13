@@ -6,16 +6,10 @@
 # Remove it when you are finished editing this file.
 message("You are running qmake on a generated .pro file. This may not work!")
 
-
 TEMPLATE = app
 TARGET = ExtendMesh
-DESTDIR = ./bin/Release
-QT += opengl xml
-CONFIG += qt release console
-DEFINES += QT_XML_LIB QT_OPENGL_LIB QT_DLL
 
 INCLUDEPATH += ./GeneratedFiles \
-    ./GeneratedFiles/Release \
     . \
     ./GraphicsLibrary \
     ./BezierSpline \
@@ -27,14 +21,29 @@ INCLUDEPATH += ./GeneratedFiles \
     ./Solver/SparseLib++/iml \
     ./Solver/SparseLib++/include
 
-DEPENDPATH += .
-MOC_DIR += ./GeneratedFiles/release
-OBJECTS_DIR += release
+Release:INCLUDEPATH += ./GeneratedFiles/Release
+Release:DESTDIR = ./bin/Release
+Release:CONFIG += qt release console
+Release:MOC_DIR += ./GeneratedFiles/release
+Release:OBJECTS_DIR += release
+
+Debug:INCLUDEPATH += ./GeneratedFiles/Debug
+Debug:DESTDIR = ./bin/Debug
+Debug:CONFIG += qt debug console
+Debug:MOC_DIR += ./GeneratedFiles/debug
+Debug:OBJECTS_DIR += debug
+
 UI_DIR += ./GeneratedFiles
 RCC_DIR += ./GeneratedFiles
-include(ExtendMesh.pri)
-win32:RC_FILE = ExtendMesh.rc
 
+QT += opengl xml
+
+DEFINES += QT_XML_LIB QT_OPENGL_LIB QT_DLL
+DEPENDPATH += .
+
+include(ExtendMesh.pri)
+
+win32:RC_FILE = ExtendMesh.rc
 win32{
     LIBS += -llib/GLee \
     -llib/QGLViewer2 \
@@ -43,7 +52,7 @@ win32{
     -lSolver/SparseLib++/lib/sparselib
 }
 
-!win32 {
+unix{
     #QMAKE_CXXFLAGS += -std=c++0x
     QMAKE_CXXFLAGS+=-fopenmp
     QMAKE_LFLAGS *= -fopenmp
