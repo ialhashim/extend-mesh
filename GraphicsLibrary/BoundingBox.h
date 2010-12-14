@@ -23,7 +23,11 @@ public:
 
 	BoundingBox() 
 	{ 
-		this->center = Vec(FLT_MIN,FLT_MIN,FLT_MIN);
+                this->center = Vec(FLT_MIN,FLT_MIN,FLT_MIN);
+
+                this->xExtent = 0;
+                this->yExtent = 0;
+                this->zExtent = 0;
 	}
 
 	BoundingBox(const Vec& c, double x, double y, double z) 
@@ -51,7 +55,8 @@ public:
 		Vec vmin (FLT_MAX, FLT_MAX, FLT_MAX);
 		Vec vmax (FLT_MIN, FLT_MIN, FLT_MIN);
 
-		double minx, miny, minz, maxx, maxy, maxz;
+                double minx = 0, miny = 0, minz = 0;
+                double maxx = 0, maxy = 0, maxz = 0;
 
                 minx = maxx = tris[0]->vec(0).x;
                 miny = maxy = tris[0]->vec(0).y;
@@ -75,11 +80,11 @@ public:
 		vmax = Vec(maxx, maxy, maxz);
 		vmin = Vec(minx, miny, minz);
 		
-		center = (vmin + vmax) / 2.0;
+                this->center = (vmin + vmax) / 2.0;
 
-		xExtent = vmax.x - center.x;
-		yExtent = vmax.y - center.y;
-		zExtent = vmax.z - center.z;
+                this->xExtent = vmax.x - center.x;
+                this->yExtent = vmax.y - center.y;
+                this->zExtent = vmax.z - center.z;
 	}
 
 	void computeFromTri(const Vec& v1, const Vec& v2, const Vec& v3) 
@@ -172,22 +177,21 @@ public:
 
         inline bool contains(const Vec& point) const
 	{
-		return abs(center.x - point.x) < xExtent 
-			&& abs(center.y - point.y) < yExtent 
-			&& abs(center.z - point.z) < zExtent;
-	}
+                return abs(center.x - point.x) < xExtent
+                        && abs(center.y - point.y) < yExtent
+                        && abs(center.z - point.z) < zExtent;
+        }
 
 	bool planeBoxOverlap(const Vec& normal, double d, const Vec& maxbox) const
 	{
-		int q;
-		Vec vmin, vmax;
+                Vec vmin, vmax;
 
-		for(q = 0 ; q <= 2 ; q++)
+                for(int q = 0 ; q < 3 ; q++)
 		{
-			if(normal[q]>0.0){
+                        if(normal[q] > 0){
 				vmin[q] = -maxbox[q];
 				vmax[q] = maxbox[q];
-			} else {
+                        } else {
 				vmin[q] = maxbox[q];
 				vmax[q] = -maxbox[q];
 			}
@@ -201,14 +205,11 @@ public:
 
         bool containsTriangle(const Vec& tv1, const Vec& tv2, const Vec& tv3) const
         {
-                if(contains(tv1) || contains(tv2) || contains(tv3))
-                        return true;
-
                 Vec v0, v1, v2;
                 double min,max,d,p0,p1,p2,rad,fex,fey,fez;
                 Vec normal,e0,e1,e2;
 
-                Vec boxhalfsize = Vec(xExtent, yExtent, zExtent);
+                Vec boxhalfsize(xExtent, yExtent, zExtent);
                 int X = 0, Y = 1, Z = 2;
 
                 v0 = tv1 - center;	v1 = tv2 - center;	v2 = tv3 - center;
