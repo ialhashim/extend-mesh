@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -484,6 +484,22 @@
     <hint type="destinationlabel">
      <x>551</x>
      <y>327</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSwitchCamera</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>ToggleCameraProjection()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>557</x>
+     <y>332</y>
     </hint>
    </hints>
   </connection>

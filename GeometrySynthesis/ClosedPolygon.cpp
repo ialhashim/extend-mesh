@@ -193,8 +193,8 @@ Vector<Vec> ClosedPolygon::getEqualDistancePoints(int numSides, const Vec& cente
 	// Hack, vector Up should already be projected on the plane?
         //this->plane.projectLine(referenceLine);
 
-	// Debug:
-        //testLines1.push_back(referenceLine.colored(Color4(255,255,255)));
+        // Debug:
+        testLines1.push_back(referenceLine.colored(Color4(255,255,255)));
 
         //int lastIndex = 0;
 
@@ -242,15 +242,13 @@ Vector<Vec> ClosedPolygon::getEqualDistancePoints(int numSides, const Vec& cente
 	}
 
 	// if polygon is opposite direction then reverse 
-	Vec direction;
-
-//	findNormal3D(result, direction);
-
-//	if( direction * plane.n < 0)
         if( signedArea(result, plane.n, center) < 0 )
 	{
 		std::reverse(result.begin(), result.end());
+                std::rotate(result.begin(), result.begin()+result.size()-1 , result.end());
 	}
+
+
 
 /*	// Fix first node position
         double minDist = DBL_MAX;
