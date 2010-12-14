@@ -217,7 +217,7 @@ void Grid::FitCrossSections(Mesh * m, bool useEntireMesh)
 
 			if(isContour > 0)
 			{
-                                //this->testLines.push_back(Line(p1, p2));
+				//this->testLines.push_back(Line(p1, p2));
 				polygon[v].insertLine(p1,p2);
 			}
 		}
@@ -227,9 +227,9 @@ void Grid::FitCrossSections(Mesh * m, bool useEntireMesh)
 		shapes.push_back(polygon[v].getEqualDistancePoints(numSides, spinePoints[v]));
 	}
 
-        //SmoothCrossSecitons(2);
+	SmoothCrossSecitons(2);
 
-        for(int v = 0; v < (int)polygon.size(); v++)
+	for(int v = 0; v < (int)polygon.size(); v++)
 	{
 		if((int)shapes[v].size() == numSides)
 		{
@@ -320,7 +320,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 		sections[v] = CrossSection(v, this);
 	// end preprocess.
 
-        CreateTimer(timer);
+	CreateTimer(timer);
 	printf("Building Octrees..");
 
 	Mesh * base = stair->mostBaseMesh();
@@ -333,7 +333,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 	grid_octree.build();
 	detailed_octree.build();
 
-        printf("Done (%d ms).", (int)timer.elapsed());
+	printf("Done (%d ms).", (int)timer.elapsed());
 
 	this->selectedFaces = selectedMeshFaces;
 
@@ -350,7 +350,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 	int N = activePoints.size();
 
 	// Timing
-        CreateTimer(projectionTimer);
+	CreateTimer(projectionTimer);
 	printf(".(Number of Points = %d).", N);
 
 	stats["gridifiy"] = Stats("Projecting points (Gridify)");
@@ -461,14 +461,14 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 		squaresMap[Point(s.u, s.v)] = s;
 	}
 
-        printf("Point projections done (%d ms).", (int)projectionTimer.elapsed());
+	printf("Point projections done (%d ms).", (int)projectionTimer.elapsed());
 
-        CreateTimer(squaresTimer);
+	CreateTimer(squaresTimer);
 	printf("Computing square values..");
 
 	this->computeSquareValues();
 
-        printf("done (%d ms).", (int)squaresTimer.elapsed());
+	printf("done (%d ms).", (int)squaresTimer.elapsed());
 
 	this->isReady = true;
 }
@@ -735,12 +735,12 @@ void Grid::drawAsGrid()
 	// Draw cross-sections
 	//for(int i = 0; i < sections.size(); i++)
 	//	sections[i].draw(3.0);
-        for(int i = 0; i < (int)polygon.size(); i++)
+	/*for(int i = 0; i < (int)polygon.size(); i++)
 	{
 		localFrames[i].draw(spinePoints[i]);
-                polygon[i].draw();
-        }
-        //return;
+		polygon[i].draw();
+	}*/
+	//return;
 
 	/*if(grid_octree)
 	{
