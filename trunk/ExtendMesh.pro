@@ -44,7 +44,7 @@ DEPENDPATH += .
 include(ExtendMesh.pri)
 
 win32:RC_FILE = ExtendMesh.rc
-win32{
+Release:win32{
     LIBS += -llib/GLee \
     -llib/QGLViewer2 \
     -lopengl32 \
@@ -53,10 +53,13 @@ win32{
 }
 
 unix{
-    #QMAKE_CXXFLAGS += -std=c++0x
-    QMAKE_CXXFLAGS+= -g -O0 -fopenmp
+    QMAKE_CXXFLAGS += -fopenmp
     QMAKE_LFLAGS *= -fopenmp
     LIBS += -lGLEW -lGLU -lGL -lQGLViewer -lsparse
 }
 
-SOURCES +=
+Debug:unix{
+    QMAKE_CXXFLAGS+= -g -O0 -fopenmp
+    QMAKE_LFLAGS *= -fopenmp
+    LIBS += -lGLEW -lGLU -lGL -lQGLViewer -lsparse
+}

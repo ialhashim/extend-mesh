@@ -64,23 +64,24 @@ public:
 	void initBuild(const StdList<FaceType>& tris, int triPerNode )
 	{
 		// add triangles involved to "triangleData"
-		for(typename StdList<FaceType>::const_iterator f = tris.begin(); f != tris.end(); f++)
-			this->triangleData.push_back(*f);
-
+                this->triangleData = LIST_TO_VECTOR(tris);
 		this->trianglePerNode = triPerNode;
 
+                // Create a big box
 		BoundingBox<FaceType> bb;
 		bb.computeFromTris(triangleData);
 
-		//Transform and scale to node's coordinates
+                // Transform and scale to node's coordinates
 		double largeSize = Max(bb.xExtent, Max(bb.yExtent, bb.zExtent));
+
+                // Define our bounding box
 		this->boundingBox = BoundingBox<FaceType>(bb.center, largeSize, largeSize, largeSize);
 
 		// Build the tree
-		this->build();
+                this->build();
 	}
 
-	void newNode( double x, double y, double z )
+        void newNode( int depth, double x, double y, double z )
 	{
 		double extent = boundingBox.xExtent / 2.0;
 
@@ -92,27 +93,29 @@ public:
 
 		BoundingBox<FaceType> bb(center, extent, extent, extent);
 
-		Vector<FaceType> tris = collectTriangles(bb);
+                children.push_back(OctreeBase<FaceType>());
 
-		children.push_back( OctreeBase<FaceType>(*this, bb, tris) );
+                children.back().boundingBox = bb;
+                children.back().trianglePerNode = this->trianglePerNode;
+                children.back().triangleData = collectTriangles(bb);
+                children.back().build(depth + 1);
 	}
 
-	void build(int depth = 0)
+        void build(int depth = 0)
 	{
 		if ((int)triangleData.size() > this->trianglePerNode)
 		{
 			if(depth < trianglePerNode * 0.25f)
 			{
 				// Subdivide to 8 nodes
-				newNode(-1, -1, -1); newNode(1, -1, -1);
-				newNode(-1, 1, -1); newNode(1, 1, -1);
-				newNode(-1, -1, 1); newNode(1, -1, 1);
-				newNode(-1, 1, 1); newNode(1, 1, 1);
-
-				for (typename Vector<OctreeBase>::iterator child = children.begin();  child != children.end(); child++)
-				{
-					child->build(depth + 1);
-				}
+                                newNode(depth, -1, -1, -1);
+                                newNode(depth, 1, -1, -1);
+                                newNode(depth, -1, 1, -1);
+                                newNode(depth, 1, 1, -1);
+                                newNode(depth, -1, -1, 1);
+                                newNode(depth, 1, -1, 1);
+                                newNode(depth, -1, 1, 1);
+                                newNode(depth, 1, 1, 1);
 			}
 		}
 	}
@@ -122,11 +125,11 @@ public:
 		return triangleData;
 	}
 
-	OctreeBase( OctreeBase& parent, const BoundingBox<FaceType>& bb, const Vector<FaceType>& tris )
+        OctreeBase( int triPerNode, const BoundingBox<FaceType>& bb, const Vector<FaceType>& tris )
 	{
 		this->boundingBox = bb;
-		this->trianglePerNode = parent.trianglePerNode;
-		this->triangleData = tris;
+                this->trianglePerNode = triPerNode;
+                this->triangleData = tris;
 	}
 
 	void draw(double r, double g, double b)
