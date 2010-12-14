@@ -165,3 +165,16 @@ void MeshPatch::drawPointCloud()
 
 	return trisToDraw;
 }*/
+
+StdList<Triangle*> MeshPatch::parameterTriPointers()
+{
+    StdList<Triangle*> listTris;
+
+    for(int i = 0; i < (int)parameterTriangles.size(); i++)
+    {
+        listTris.push_back(&parameterTriangles[i]);
+    }
+
+    return listTris;
+}
+

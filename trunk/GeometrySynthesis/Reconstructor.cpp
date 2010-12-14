@@ -93,7 +93,7 @@ void Reconstructor::Sample()
 
 				HitResult hitRes;
 
-				curr_patch->paramterOctree.testIntersectRayBoth(ray, hitRes);
+                                curr_patch->parameterOctree.testIntersectRayBoth(ray, hitRes);
 
 				// Record sample hits
 				if(hitRes.hit)

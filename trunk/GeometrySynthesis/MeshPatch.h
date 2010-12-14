@@ -26,6 +26,10 @@ public:
 	VertexMap usedPointsMap;
 	VertexMap usedIndexToCorr;
 
+        int convertToCorr(int index);
+        StdSet<int> convertToCorr(const StdList<int>& indices);
+        Vector<int> getBorder();
+
 	// Grid Related data
 	Vector<SimpleSquare> patch;
 	Vector<SimpleSquare> border;
@@ -43,9 +47,12 @@ public:
 	Mesh fpdMesh; /* detailed */
 
 	// For sampling
-	Vector<Triangle> paramterTriangles;
-	OctreeTriangles paramterOctree;
-	void drawParamterTris();
+        Vector<Triangle> parameterTriangles;
+        OctreeTriangles parameterOctree;
+        StdList<Triangle*> parameterTriPointers();
+
+        // Visulaize paramter triangles
+        void drawparameterTris();
 	Vector<Vector<Vec> > readyToDrawTris();
 
 	void insertPoint(int corrPointIndex, const Vec& pos);
@@ -55,10 +62,6 @@ public:
 
 	void makeMesh();
 	void replaceMesh(Mesh * from, bool isReplaceCorr);
-	void drawPointCloud();
 
-	Vector<int> getBorder();
-
-	int convertToCorr(int index);
-	StdSet<int> convertToCorr(const StdList<int>& indices);
+        void drawPointCloud();
 };
