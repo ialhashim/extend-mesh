@@ -9,10 +9,10 @@ static inline double findArea(int n, double *x, double *y)
 	// Assume that the 2D polygon's vertex coordinates are
 	// stored in (x[0], y[0]), ..., (x[n-1], y[n-1]),
 	// with no assumed vertex replication at the end.
-	
+
 	// Initialize sum with the boundary vertex terms
 	double sum = x[0] * (y[1] - y[n-1]) + x[n-1] * (y[0] - y[n-2]);
-	
+
 	for (int i=1; i < n-1; i++) {
 		sum += x[i] * ( y[i+1] - y[i-1] );
 	}
@@ -29,13 +29,13 @@ static inline double findArea3D(int n, double *x, double *y, double *z, double n
 	double ay = (ny>0 ? ny : -ny);	// abs ny
 	double az = (nz>0 ? nz : -nz);	// abs nz
 	double len = sqrt(nx*nx + ny*ny + nz*nz); // length of normal
-	
+
 	if (ax > ay) {
 		if (ax > az)			       // ignore x-coord
-		return findArea(n, y, z) * (len / nx);
+			return findArea(n, y, z) * (len / nx);
 	}
 	else if (ay > az)			       // ignore y-coord
-	return findArea(n, z, x) * (len / ny);
+		return findArea(n, z, x) * (len / ny);
 	return findArea(n, x, y) * (len / nz); // ignore z-coord
 }
 
@@ -113,12 +113,14 @@ static inline double findNormal3D(const Vector<Vec>& points, Vec& n)
 
 static inline double signedArea(const Vector<Vec>& points, const Vec& n, const Vec& center)
 {
-    int N = points.size();
-    Vec sumVec;
-    for(int i=0; i<N; i++)
-    {
-        int j = NEXT(i, N);
-        sumVec += ((points[i]-center) ^ (points[j]-center));
-    }
-    return sumVec * n;
+	int N = points.size();
+	Vec sumVec;
+
+	for(int i = 0; i < N; i++)
+	{
+		int j = NEXT(i, N);
+		sumVec += ((points[i]-center) ^ (points[j]-center));
+	}
+
+	return sumVec * n;
 }

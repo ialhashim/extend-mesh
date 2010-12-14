@@ -168,17 +168,14 @@ void ClosedPolygon::computeLengths()
 
 Vector<Vec> ClosedPolygon::getEqualDistancePoints(int numSides, const Vec& center)
 {
-        Vector<Vec> result;
-
-	// for complex shapes
-	HashMap<int, Line> lineDists;
+	Vector<Vec> result;
 
 	int N = closedPoints.size();
 
 	if(N < 1)	return result; // empty polygon
 
-        for(int i = 0; i < N; i++)
-                lines.push_back(Line(closedPoints[i], closedPoints[(i+1) % N], i));
+	for(int i = 0; i < N; i++)
+		lines.push_back(Line(closedPoints[i], closedPoints[(i+1) % N], i));
 
 	this->computeLengths();
 
@@ -186,51 +183,37 @@ Vector<Vec> ClosedPolygon::getEqualDistancePoints(int numSides, const Vec& cente
 	double segmentLength = this->closedLength / numSides;
 
 	// Locate start point using vecUp
-        Vec startPoint;
-        int startIndex = 0;
-        Line referenceLine(center, center + vecB); // long line
+	Vec startPoint;
+	int startIndex = 0;
 
-	// Hack, vector Up should already be projected on the plane?
-        //this->plane.projectLine(referenceLine);
+	Plane halfPlane(vecUp, center);
+	//testPlanes1.push_back(halfPlane);
 
-        // Debug:
-        testLines1.push_back(referenceLine.colored(Color4(255,255,255)));
+	double minDist = DBL_MAX;
 
-        //int lastIndex = 0;
-
-        Plane halfPlane(vecUp, center);
-
-        //testPlanes1.push_back(halfPlane);
-
-        double minDist = DBL_MAX;
-
-        // Test intersection with all lines and remember minimum one
+	// Test intersection with all lines and remember minimum one
 	for(int i = 0; i < N; i++)
 	{
-                Vec pointIntersect;
+		Vec pointIntersect;
 
-                int res = halfPlane.LineIntersect(lines[i], pointIntersect);
+		int res = halfPlane.LineIntersect(lines[i], pointIntersect);
 
-                if(res == INTERSECT || res == ENDPOINT_INTERSECT)
-                {
-                    Vec toIntsect = pointIntersect - center;
+		if(res == INTERSECT || res == ENDPOINT_INTERSECT)
+		{
+			Vec toIntsect = pointIntersect - center;
 
-                    if(toIntsect.norm() < minDist && toIntsect * vecB > 0)
-                    {
-                        minDist = toIntsect.norm();
+			if(toIntsect.norm() < minDist && toIntsect * vecB > 0)
+			{
+				minDist = toIntsect.norm();
 
-                        lineDists[i] = Line(pointIntersect, pointIntersect);
-                        startPoint = pointIntersect;
-                        startIndex = i;
-                    }
-                }
+				startPoint = pointIntersect;
+				startIndex = i;
+			}
+		}
 	}
 
 	double t = lines[startIndex].timeAt(startPoint);
-
 	int index = startIndex;
-
-        testPoints1.push_back(startPoint);
 
 	// Compute equal-dist points on polygon
 	for(int s = 0; s < numSides; s++)
@@ -242,29 +225,12 @@ Vector<Vec> ClosedPolygon::getEqualDistancePoints(int numSides, const Vec& cente
 	}
 
 	// if polygon is opposite direction then reverse 
-        if( signedArea(result, plane.n, center) < 0 )
+	if( signedArea(result, plane.n, center) < 0 )
 	{
 		std::reverse(result.begin(), result.end());
-                std::rotate(result.begin(), result.begin()+result.size()-1 , result.end());
+		std::rotate(result.begin(), result.begin()+result.size()-1 , result.end());
 	}
 
-
-
-/*	// Fix first node position
-        double minDist = DBL_MAX;
-	Vector<Vec>::iterator makeFirst = result.begin();
-	for(Vector<Vec>::iterator it = result.begin(); it != result.end(); it++){
-		double dist = (*it - startPoint).norm();
-
-		if(dist < minDist){
-			minDist = dist;
-			makeFirst = it;
-		}
-	}
-
-	// And make that point the first point
-	std::rotate(result.begin(), makeFirst, result.end());
-*/
 	return closedPoints = result;
 }
 
@@ -286,7 +252,7 @@ void ClosedPolygon::walk(double distance, double startTime, int index, double * 
 	// Case 2: keep walking next lines
 	while(walked < distance)
 	{
-                index = (index + 1) % lines.size();		// step to next line
+		index = (index + 1) % lines.size();		// step to next line
 		walked += lines[index].length;
 	}
 
