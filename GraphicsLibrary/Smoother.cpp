@@ -358,26 +358,26 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 		printf("\nSolving..");
 
 		// Solve
-		#pragma omp parallel sections
-		{
-			#pragma omp section
+//		#pragma omp parallel sections
+                {
+//			#pragma omp section
 			{
                                 result = Solver::BiCG(A, X, b_x, precond, maxit_x, tol_x);
 				printf(" conv X = %s ..",(result)?"false":"true");
 			}
 
-			#pragma omp section
+//			#pragma omp section
 			{
                                 result = Solver::BiCG(A, Y, b_y, precond, maxit_y, tol_y);
 				printf(" conv Y = %s ..",(result)?"false":"true");
 			}
 
-			#pragma omp section
+//			#pragma omp section
 			{
                                 result = Solver::BiCG(A, Z, b_z, precond, maxit_z, tol_z);
 				printf(" conv Z = %s ..",(result)?"false":"true");
 			}
-		}
+                }
 
                 printf("\nSolve time = %d ms\n", (int)solveTime.elapsed());
 

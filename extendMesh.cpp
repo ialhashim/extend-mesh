@@ -1,3 +1,4 @@
+#include "ExtendMeshHeaders.h"
 #include "extendMesh.h"
 
 ExtendMesh::ExtendMesh(QWidget *parent, Qt::WFlags flags)
@@ -8,5 +9,5 @@ ExtendMesh::ExtendMesh(QWidget *parent, Qt::WFlags flags)
 
 ExtendMesh::~ExtendMesh()
 {
-
+    clearMeshes();
 }

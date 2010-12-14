@@ -16,7 +16,7 @@ public:
 		glColor3f(r, g, b);
 		glPointSize(pointSize);
 		glBegin(GL_POINTS);
-			glVertex3f(p.x, p.y, p.z);
+                glVertex3f(p.x, p.y, p.z);
 		glEnd();
 
 		// White Border

@@ -456,7 +456,7 @@ void Skeleton::smoothSelectedEdges(int numSmoothingIterations)
 		for(int i = 1; i < (int)smoothNodes.size() - 1; i++)
 		{
 			smoothNodes[i]->set(positions[i]);
-			delete positions[i];
+                        delete [] positions[i];
 		}
 	}
 

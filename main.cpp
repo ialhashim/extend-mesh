@@ -1,7 +1,7 @@
 #include "ExtendMeshHeaders.h"
 
 // Shared memory
-QMap <QString, Mesh *> meshes;
+QMap <QString,Mesh *> meshes;
 Skeleton skeleton;
 Displacements * df;
 DisplacementsWidget * df_widget;
@@ -56,6 +56,14 @@ Mesh * newMesh(QString id)
 	meshes[id]->id = id.toStdString();
 
 	return meshes[id];
+}
+
+void clearMeshes()
+{
+    foreach (Mesh* mesh, meshes)
+    {
+        delete mesh;
+    }
 }
 
 void clearStats()

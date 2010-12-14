@@ -110,3 +110,15 @@ static inline double findNormal3D(const Vector<Vec>& points, Vec& n)
 
 	return findNormal3D(N, X, Y, Z, &n.x, &n.y, &n.z);
 }
+
+static inline double signedArea(const Vector<Vec>& points, const Vec& n, const Vec& center)
+{
+    int N = points.size();
+    Vec sumVec;
+    for(int i=0; i<N; i++)
+    {
+        int j = NEXT(i, N);
+        sumVec += ((points[i]-center) ^ (points[j]-center));
+    }
+    return sumVec * n;
+}
