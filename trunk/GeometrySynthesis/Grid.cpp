@@ -217,7 +217,7 @@ void Grid::FitCrossSections(Mesh * m, bool useEntireMesh)
 
 			if(isContour > 0)
 			{
-				//this->testLines.push_back(Line(p1, p2));
+                                //this->testLines.push_back(Line(p1, p2));
 				polygon[v].insertLine(p1,p2);
 			}
 		}
@@ -227,9 +227,9 @@ void Grid::FitCrossSections(Mesh * m, bool useEntireMesh)
 		shapes.push_back(polygon[v].getEqualDistancePoints(numSides, spinePoints[v]));
 	}
 
-	SmoothCrossSecitons(2);
+        //SmoothCrossSecitons(2);
 
-	for(int v = 0; v < (int)polygon.size(); v++)
+        for(int v = 0; v < (int)polygon.size(); v++)
 	{
 		if((int)shapes[v].size() == numSides)
 		{
@@ -738,7 +738,7 @@ void Grid::drawAsGrid()
         for(int i = 0; i < (int)polygon.size(); i++)
 	{
 		localFrames[i].draw(spinePoints[i]);
-		polygon[i].draw();
+                polygon[i].draw();
         }
         //return;
 

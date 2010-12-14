@@ -47,6 +47,7 @@ extern ExtendMesh * mainWindow;
 // Mesh management
 Mesh * getMesh(QString id);
 Mesh * newMesh(QString id);
+void clearMeshes();
 
 // Statistics
 void clearStats();

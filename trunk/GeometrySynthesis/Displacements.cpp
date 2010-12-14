@@ -114,10 +114,13 @@ void Displacements::draw()
 		}
 		else*/
 		{
+                   // if(grid.isReady)
+                    {
 			grid.drawAsGrid();
 
 			grid.draw();
-		}
+                    }
+                }
 	}
 }
 

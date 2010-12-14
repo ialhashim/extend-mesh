@@ -14,6 +14,11 @@ Vec Plane::projectionOf(const Vec &point)
 	}
 }
 
+int Plane::LineIntersect(const Line& l, Vec & result)
+{
+    return LineIntersect(l.a, l.b, center, result);
+}
+
 int Plane::LineIntersect(const Vec& start, const Vec& end, const Vec& pointOnPlane, Vec & result)
 {
 	double denom, numer;
