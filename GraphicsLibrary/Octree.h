@@ -15,7 +15,7 @@ typedef IndexSet::iterator IndexSetIter;
 #include <stack>
 using namespace std;
 
-template <typename FaceType = Face>
+template <typename FaceType>
 class OctreeBase
 {
 private:
@@ -30,19 +30,17 @@ public:
 
 	OctreeBase(const Vector<int> & trisIndex, Mesh * mesh, int triPerNode) 
 	{
-		// just add triangles invovled to "triangleData"
 		for(Vector<int>::const_iterator index = trisIndex.begin(); index != trisIndex.end(); index++)
 		{
-			this->triangleData.push_back(*mesh->f(*index));
+                        this->triangleData.push_back(mesh->f(*index));
 		}
 
 		init(triPerNode);
 	}
 
-	OctreeBase(StdList<FaceType>& tris, int triPerNode) 
+        OctreeBase(const StdList<FaceType>& tris, int triPerNode)
 	{
-		// add triangles involved to "triangleData"
-                for(typename StdList<FaceType>::iterator f = tris.begin(); f != tris.end(); f++)
+                for(typename StdList<FaceType>::const_iterator f = tris.begin(); f != tris.end(); f++)
 		{
 			this->triangleData.push_back(*f);
 		}
@@ -63,10 +61,10 @@ public:
 		this->boundingBox = BoundingBox<FaceType>(bb.center, largeSize, largeSize, largeSize);
 	}
 
-	void initBuild( StdList<FaceType>& tris, int triPerNode )
+        void initBuild(const StdList<FaceType>& tris, int triPerNode )
 	{
 		// add triangles involved to "triangleData"
-                for(typename StdList<FaceType>::iterator f = tris.begin(); f != tris.end(); f++)
+                for(typename StdList<FaceType>::const_iterator f = tris.begin(); f != tris.end(); f++)
 			this->triangleData.push_back(*f);
 
 		this->trianglePerNode = triPerNode;
@@ -82,20 +80,6 @@ public:
 		this->build();
 	}
 
-	void build(int depth = 0) 
-	{
-                if ((int)triangleData.size() > this->trianglePerNode)
-		{
-			if(depth < trianglePerNode * 0.25f)
-			{
-				subdivide();
-
-                                for (typename Vector<OctreeBase>::iterator child = children.begin();  child != children.end(); child++)
-					child->build(depth + 1);
-			}
-		} 
-	}
-
 	void newNode( double x, double y, double z )
 	{
 		double extent = boundingBox.xExtent / 2.0;
@@ -106,25 +90,32 @@ public:
 		center.y = boundingBox.center.y + (extent * y);
 		center.z = boundingBox.center.z + (extent * z);
 
-		BoundingBox<FaceType> bb(center, extent, extent, extent);
+                BoundingBox<FaceType> bb(center, extent, extent, extent);
 
-		Vector<FaceType> tris = collectTriangles(bb);
+                Vector<FaceType> tris = collectTriangles(bb);
 
 		children.push_back( OctreeBase<FaceType>(*this, bb, tris) );
 	}
 
-	void subdivide()
-	{
-		// 8 nodes
-		newNode(-1, -1, -1);
-		newNode(1, -1, -1);
-		newNode(-1, 1, -1);
-		newNode(1, 1, -1);
-		newNode(-1, -1, 1);
-		newNode(1, -1, 1);
-		newNode(-1, 1, 1);
-		newNode(1, 1, 1);
-	}
+        void build(int depth = 0)
+        {
+                if ((int)triangleData.size() > this->trianglePerNode)
+                {
+                        if(depth < trianglePerNode * 0.25f)
+                        {
+                                // Subdivide to 8 nodes
+                                newNode(-1, -1, -1); newNode(1, -1, -1);
+                                newNode(-1, 1, -1); newNode(1, 1, -1);
+                                newNode(-1, -1, 1); newNode(1, -1, 1);
+                                newNode(-1, 1, 1); newNode(1, 1, 1);
+
+                                for (typename Vector<OctreeBase>::iterator child = children.begin();  child != children.end(); child++)
+                                {
+                                        child->build(depth + 1);
+                                }
+                        }
+                }
+        }
 
 	Vector<FaceType> getTriangleData()
 	{
@@ -151,9 +142,11 @@ public:
 		Vector<FaceType> triList;
 
                 for(typename Vector<FaceType>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
-		{
-			if( bb.containsTriangle(face->vec(0), face->vec(1), face->vec(2)) )
-				triList.push_back(*face);
+                {
+                        FaceType f = *face;
+
+                        if( bb.containsTriangle(f->vec(0), f->vec(1), f->vec(2)) )
+                                triList.push_back(f);
 		}
 
 		return triList;
@@ -165,7 +158,9 @@ public:
 			return false;
 
                 for(typename Vector<FaceType>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
-			tris.insert( face->index );
+                {
+                        tris.insert( (*face)->index );
+                }
 
 		return true;
 	}
@@ -304,10 +299,10 @@ public:
 		return -1;
 	}
 
-	FaceType * findClosestTri(const Ray & ray, IndexSet & tris, Mesh * mesh, HitResult & hitRes)
+        FaceType findClosestTri(const Ray & ray, IndexSet & tris, Mesh * mesh, HitResult & hitRes)
 	{
 		double minDist = FLT_MAX;
-		FaceType *closestFace = NULL, *curr_FaceType = NULL;
+                FaceType closestFace = NULL, curr_FaceType = NULL;
 
 		double u = 0.0, v = 0.0;
 		double actualMinDist = 0;
@@ -359,8 +354,10 @@ public:
 
 		// Do actual intersection test
                 for(typename Vector<FaceType>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
-		{
-			face->intersectionTest(ray, hitRes, true);
+                {
+                        FaceType f = *face;
+
+                        f->intersectionTest(ray, hitRes, true);
 
 			if(hitRes.hit)
 				return true;
@@ -398,5 +395,5 @@ public:
 	}
 };
 
-typedef OctreeBase<Face> Octree;
-typedef OctreeBase<Triangle> OctreeTriangles;
+typedef OctreeBase<Face*> Octree;
+typedef OctreeBase<Triangle*> OctreeTriangles;

@@ -54,7 +54,9 @@ win32{
 
 unix{
     #QMAKE_CXXFLAGS += -std=c++0x
-    QMAKE_CXXFLAGS+=-fopenmp
+    QMAKE_CXXFLAGS+= -g -O0 -fopenmp
     QMAKE_LFLAGS *= -fopenmp
     LIBS += -lGLEW -lGLU -lGL -lQGLViewer -lsparse
 }
+
+SOURCES +=

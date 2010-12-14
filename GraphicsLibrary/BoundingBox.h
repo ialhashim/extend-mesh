@@ -13,7 +13,7 @@
 *
 * @author Joshua Slack
 */
-template <typename FaceType = Face>
+template <typename FaceType>
 class BoundingBox
 {
 
@@ -46,22 +46,22 @@ public:
 		return *this;
 	}
 
-	void computeFromTris(Vector<FaceType>& tris) 
+        void computeFromTris(const Vector<FaceType>& tris)
 	{
 		Vec vmin (FLT_MAX, FLT_MAX, FLT_MAX);
 		Vec vmax (FLT_MIN, FLT_MIN, FLT_MIN);
 
 		double minx, miny, minz, maxx, maxy, maxz;
 
-		minx = maxx = tris[0].vec(0).x;
-		miny = maxy = tris[0].vec(0).y;
-		minz = maxz = tris[0].vec(0).z;
+                minx = maxx = tris[0]->vec(0).x;
+                miny = maxy = tris[0]->vec(0).y;
+                minz = maxz = tris[0]->vec(0).z;
 
                 for (int i = 0; i < (int)tris.size(); i++)
 		{
 			for(int v = 0; v < 3; v++)
 			{
-				Vec vec = tris[i].vec(v);
+                                Vec vec = tris[i]->vec(v);
 
 				if (vec.x < minx) minx = vec.x;
 				if (vec.x > maxx) maxx = vec.x;
@@ -170,7 +170,7 @@ public:
 		return true;
 	}
 
-	inline bool contains(const Vec& point) const
+        inline bool contains(const Vec& point) const
 	{
 		return abs(center.x - point.x) < xExtent 
 			&& abs(center.y - point.y) < yExtent 
@@ -199,57 +199,57 @@ public:
 		return false;
 	}
 
-	bool containsTriangle(const Vec& tv1, const Vec& tv2, const Vec& tv3) const
-	{
-		if(contains(tv1) || contains(tv2) || contains(tv3))
-			return true;
+        bool containsTriangle(const Vec& tv1, const Vec& tv2, const Vec& tv3) const
+        {
+                if(contains(tv1) || contains(tv2) || contains(tv3))
+                        return true;
 
-		Vec v0, v1, v2;
-		double min,max,d,p0,p1,p2,rad,fex,fey,fez;  
-		Vec normal,e0,e1,e2;
+                Vec v0, v1, v2;
+                double min,max,d,p0,p1,p2,rad,fex,fey,fez;
+                Vec normal,e0,e1,e2;
 
-		Vec boxhalfsize = Vec(xExtent, yExtent, zExtent);
-		int X = 0, Y = 1, Z = 2;
+                Vec boxhalfsize = Vec(xExtent, yExtent, zExtent);
+                int X = 0, Y = 1, Z = 2;
 
-		v0 = tv1 - center;	v1 = tv2 - center;	v2 = tv3 - center;
-		e0 = v1 - v0;		e1 = v2 - v1;		e2 = v0 - v2;
+                v0 = tv1 - center;	v1 = tv2 - center;	v2 = tv3 - center;
+                e0 = v1 - v0;		e1 = v2 - v1;		e2 = v0 - v2;
 
-		/* Bullet 3:  */
-		/*  test the 9 tests first (this was faster) */
-		fex = abs(e0[X]); fey = abs(e0[Y]); fez = abs(e0[Z]);
-		AXISTEST_X01(e0[Z], e0[Y], fez, fey);
-		AXISTEST_Y02(e0[Z], e0[X], fez, fex);
-		AXISTEST_Z12(e0[Y], e0[X], fey, fex);
+                /* Bullet 3:  */
+                /*  test the 9 tests first (this was faster) */
+                fex = abs(e0[X]); fey = abs(e0[Y]); fez = abs(e0[Z]);
+                AXISTEST_X01(e0[Z], e0[Y], fez, fey);
+                AXISTEST_Y02(e0[Z], e0[X], fez, fex);
+                AXISTEST_Z12(e0[Y], e0[X], fey, fex);
 
-		fex = abs(e1[X]); fey = abs(e1[Y]); fez = abs(e1[Z]);
-		AXISTEST_X01(e1[Z], e1[Y], fez, fey);
-		AXISTEST_Y02(e1[Z], e1[X], fez, fex);
-		AXISTEST_Z0(e1[Y], e1[X], fey, fex);
+                fex = abs(e1[X]); fey = abs(e1[Y]); fez = abs(e1[Z]);
+                AXISTEST_X01(e1[Z], e1[Y], fez, fey);
+                AXISTEST_Y02(e1[Z], e1[X], fez, fex);
+                AXISTEST_Z0(e1[Y], e1[X], fey, fex);
 
-		fex = abs(e2[X]); fey = abs(e2[Y]); fez = abs(e2[Z]);
-		AXISTEST_X2(e2[Z], e2[Y], fez, fey);
-		AXISTEST_Y1(e2[Z], e2[X], fez, fex);
-		AXISTEST_Z12(e2[Y], e2[X], fey, fex);
+                fex = abs(e2[X]); fey = abs(e2[Y]); fez = abs(e2[Z]);
+                AXISTEST_X2(e2[Z], e2[Y], fez, fey);
+                AXISTEST_Y1(e2[Z], e2[X], fez, fex);
+                AXISTEST_Z12(e2[Y], e2[X], fey, fex);
 
-		/* Bullet 1: */
-		FINDMINMAX(v0.x,v1.x,v2.x, min, max);	/* test in X-direction */
-		if(min > boxhalfsize.x || max < -boxhalfsize.x) return false;
+                /* Bullet 1: */
+                FINDMINMAX(v0.x,v1.x,v2.x, min, max);	/* test in X-direction */
+                if(min > boxhalfsize.x || max < -boxhalfsize.x) return false;
 
-		FINDMINMAX(v0.y,v1.y,v2.y, min, max);	/* test in Y-direction */
-		if(min > boxhalfsize.y || max < -boxhalfsize.y) return false;
+                FINDMINMAX(v0.y,v1.y,v2.y, min, max);	/* test in Y-direction */
+                if(min > boxhalfsize.y || max < -boxhalfsize.y) return false;
 
-		FINDMINMAX(v0.z,v1.z,v2.z, min, max); 	/* test in Z-direction */	
-		if(min > boxhalfsize.z || max < -boxhalfsize.z) return false;
+                FINDMINMAX(v0.z,v1.z,v2.z, min, max); 	/* test in Z-direction */
+                if(min > boxhalfsize.z || max < -boxhalfsize.z) return false;
 
-		/*  test if the box intersects the plane of the triangle */
-		normal = e0 ^ e1;
-		d = -(v0 * normal);  	/* plane eq: normal.x+d=0 */
-		
-		if(!planeBoxOverlap(normal, d, boxhalfsize)) 
-			return false;
+                /*  test if the box intersects the plane of the triangle */
+                normal = e0 ^ e1;
+                d = -(v0 * normal);  	/* plane eq: normal.x+d=0 */
 
-		return true;
-	}
+                if(!planeBoxOverlap(normal, d, boxhalfsize))
+                        return false;
+
+                return true;
+        }
 
 	inline bool intersectsBoundingBox(const BoundingBox& bb) 
 	{

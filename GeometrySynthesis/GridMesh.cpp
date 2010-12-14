@@ -528,12 +528,10 @@ void GridMesh::CreateFullPatches()
 				if(other.flag == MODIFIED_TRI)	tempTris.push_back(other);
 			}
 
-			tri_patch[i].paramterTriangles = tempTris;
-
-                        StdList<Triangle> indexTris = VECTOR_TO_LIST(tempTris);
+                        tri_patch[i].parameterTriangles = tempTris;
 
 			// Build octree of paramter domain
-                        tri_patch[i].paramterOctree.initBuild(indexTris, 30 );
+                        tri_patch[i].parameterOctree.initBuild(tri_patch[i].parameterTriPointers(), 30 );
 		}
 	
 		// Compute normals for detailed

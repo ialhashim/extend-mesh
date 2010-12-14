@@ -25,6 +25,7 @@ Mesh::Mesh(int expectedNumVerts)
 	vbo = NULL;
 
 	this->radius = 0.0;
+        this->normalize_scale = 1.0;
 
 	this->vertex.reserve(expectedNumVerts);
 	this->vertexInfo.reserve(expectedNumVerts);

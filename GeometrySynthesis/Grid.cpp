@@ -315,6 +315,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 {
 	// Preprocessing...
 	computeNormals();
+        computeBounds();
 
 	for(int v = 0; v < this->lengthCount + 1; v++)	
 		sections[v] = CrossSection(v, this);
@@ -327,7 +328,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 	Mesh * detailed = stair->mostDetailedMesh();
 
 	// Octree initialization
-	grid_octree = Octree(this->face, 20);
+        grid_octree = Octree(this->facesListPointers(), 20);
 	detailed_octree = Octree(selectedMeshFaces, detailed, 20);
 
 	grid_octree.build();
