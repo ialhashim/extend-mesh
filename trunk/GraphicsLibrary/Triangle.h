@@ -14,7 +14,16 @@ public:
 	int index;
 	int flag;
 
-	Triangle(Vec point1 = Vec(), Vec point2 = Vec(), Vec point3 = Vec(), 
+	Triangle()
+	{
+		p[0] = Vec();
+		p[1] = Vec();
+		p[2] = Vec();
+
+		index = flag = -1;
+	}
+
+	Triangle(const Vec& point1, const Vec& point2, const Vec& point3, 
 		int tri_index = -1, int tri_flag = -1) : index(tri_index), flag(tri_flag)
 	{
 		p[0] = point1;

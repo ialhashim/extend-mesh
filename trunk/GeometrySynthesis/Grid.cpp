@@ -743,11 +743,12 @@ void Grid::drawAsGrid()
 	}*/
 	//return;
 
-	/*if(grid_octree)
+	// Octrees
+	/*if(isReady)
 	{
-	grid_octree->draw();
-	//base_octree->draw(1,1,1);
-	detailed_octree->draw(0,0,1);
+		grid_octree.draw(1,0,0);
+		//base_octree.draw(1,1,1);
+		detailed_octree.draw(0,0,1);
 	}*/
 
 	SimpleDraw::IdentifyConnectedPoints(testPoints);
