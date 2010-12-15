@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -500,6 +500,22 @@
     <hint type="destinationlabel">
      <x>557</x>
      <y>332</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionLoadUserCurve</sender>
+   <signal>triggered()</signal>
+   <receiver>commander</receiver>
+   <slot>LoadUserCurve()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>551</x>
+     <y>327</y>
     </hint>
    </hints>
   </connection>

@@ -254,12 +254,12 @@ public:
 	{
 		stack<OctreeBase*> trees;
 
-                Ray inverseRay(ray.inverse());
+		Ray inverseRay(ray.inverse());
 
 		if (boundingBox.intersects(ray) || boundingBox.intersects(inverseRay))
 			trees.push(this);
-                else
-                    return;
+		else
+			return;
 
 		while(!trees.empty())
 		{
@@ -278,7 +278,7 @@ public:
 
 	FaceType findClosestTri(const Ray & ray, IndexSet & tris, Mesh * mesh, HitResult & hitRes)
 	{
-                double minDist = DBL_MAX;
+		double minDist = DBL_MAX;
 		FaceType closestFace = NULL, curr_FaceType = NULL;
 
 		double u = 0.0, v = 0.0;
@@ -316,7 +316,7 @@ public:
 		else
 		{
 			hitRes.hit = false;
-                        hitRes.distance = DBL_MAX;
+			hitRes.distance = DBL_MAX;
 			hitRes.index = -1;
 		}
 
