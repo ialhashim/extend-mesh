@@ -7,8 +7,6 @@
 #include "Smoother.h"
 #include "SmoothStairway.h"
 
-#define NOT_SET FLT_MAX
-
 class Displacements
 {
 private:

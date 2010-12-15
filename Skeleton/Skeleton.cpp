@@ -162,7 +162,7 @@ void Skeleton::embed(Mesh * m)
 
 void Skeleton::calculateEdgesLengths()
 {
-	float len, minEdgeLength = FLT_MAX;
+        double len, minEdgeLength = DBL_MAX;
 
 	for(int i = 0; i < (int)edges.size(); i++)
 	{
