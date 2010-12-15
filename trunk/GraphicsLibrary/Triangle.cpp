@@ -66,7 +66,7 @@ Triangle Triangle::shiftY( float offsetY )
 void Triangle::intersectionTest(const Ray & ray, HitResult & res, bool allowBack)
 {
 	res.hit = false;
-	res.distance = FLT_MAX;
+        res.distance = DBL_MAX;
 
 	Vec vertex1 = p[0];
 	Vec vertex2 = p[1];

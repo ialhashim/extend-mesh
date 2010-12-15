@@ -366,7 +366,6 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 
 		Ray testRay(basePoint, *base->n(i), i); // ray towards triangles
 
-		Ray ray;
 		HitResult res;
 		GridSquare * square = NULL;
 

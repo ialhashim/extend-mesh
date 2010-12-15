@@ -858,7 +858,7 @@ void Mesh::drawSimple(bool smooth)
 
 	// This is useful for simple mesh constructions
         if((int)vNormal.size() != numberOfVertices())computeNormals();
-        if((int)vColor.size() != numberOfVertices())	vColor = Vector<Color4>(vertex.size(), Color4());
+        if((int)vColor.size() != numberOfVertices()) vColor = Vector<Color4>(vertex.size(), Color4());
 
 	if(smooth)
 		glShadeModel(GL_SMOOTH);
@@ -866,49 +866,39 @@ void Mesh::drawSimple(bool smooth)
 	glBegin(GL_TRIANGLES);
 
 	for(StdList<Face>::iterator f = face.begin(); f != face.end(); f++)
-	{
-		f_normal = fNormal[f->index];
+        {
+                f_normal = fNormal[f->index];
 
-		v1 = f->v[0]->vec();
-		v2 = f->v[1]->vec();
-		v3 = f->v[2]->vec();
+                Color4 * color1 = &vColor[f->vIndex[0]];
+                Color4 * color2 = &vColor[f->vIndex[1]];
+                Color4 * color3 = &vColor[f->vIndex[2]];
 
-		Color4 * color1 = &vColor[f->vIndex[0]];
-		Color4 * color2 = &vColor[f->vIndex[1]];
-		Color4 * color3 = &vColor[f->vIndex[2]];
+                if(smooth){
+                        n1 = vNormal[f->vIndex[0]];
+                        n2 = vNormal[f->vIndex[1]];
+                        n3 = vNormal[f->vIndex[2]];
+                }
+                else
+                {
+                        glNormal3dv(f_normal);
+                }
 
-		if(smooth)
-		{
-			n1 = vNormal[f->vIndex[0]];
-			n2 = vNormal[f->vIndex[1]];
-			n3 = vNormal[f->vIndex[2]];
+                v1 = f->v[0]->vec();
+                v2 = f->v[1]->vec();
+                v3 = f->v[2]->vec();
 
-			glColor4f(color1->r(), color1->g(), color1->b(), color1->a());
-			glNormal3f(n1[0], n1[1], n1[2]);
-			glVertex3f(v1[0], v1[1], v1[2]);
+                glColor4f(color1->r(), color1->g(), color1->b(), color1->a());
+                if(smooth) glNormal3dv(n1);
+                glVertex3dv(v1);
 
-			glColor4f(color2->r(), color2->g(), color2->b(), color2->a());
-			glNormal3f(n2[0], n2[1], n2[2]);
-			glVertex3f(v2[0], v2[1], v2[2]);
+                glColor4f(color2->r(), color2->g(), color2->b(), color2->a());
+                if(smooth) glNormal3dv(n2);
+                glVertex3dv(v2);
 
-			glColor4f(color3->r(), color3->g(), color3->b(), color3->a());
-			glNormal3f(n3[0], n3[1], n3[2]);
-			glVertex3f(v3[0], v3[1], v3[2]);
-		}
-		else
-		{
-			glNormal3f(f_normal[0], f_normal[1], f_normal[2]);
-
-			glColor4f(color1->r(), color1->g(), color1->b(), color1->a());
-			glVertex3f(v1[0], v1[1], v1[2]);
-
-			glColor4f(color2->r(), color2->g(), color2->b(), color2->a());
-			glVertex3f(v2[0], v2[1], v2[2]);
-
-			glColor4f(color3->r(), color3->g(), color3->b(), color3->a());
-			glVertex3f(v3[0], v3[1], v3[2]);
-		}
-	}
+                glColor4f(color3->r(), color3->g(), color3->b(), color3->a());
+                if(smooth) glNormal3dv(n3);
+                glVertex3dv(v3);
+        }
 
 	glEnd();
 }

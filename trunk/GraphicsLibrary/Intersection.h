@@ -6,13 +6,12 @@ struct HitResult{
 
 	double u;
 	double v;
-
 	int index;
 
-	HitResult(bool isHit = false, double hitDistance = FLT_MAX) : hit(isHit), distance(hitDistance)
+        HitResult(bool isHit = false, double hitDistance = DBL_MAX) : hit(isHit), distance(hitDistance)
 	{
-		u = -1;
-		v = -1;
+                u = -1.0;
+                v = -1.0;
 		index = -1;
 	}
 

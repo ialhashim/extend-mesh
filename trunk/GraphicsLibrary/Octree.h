@@ -254,10 +254,12 @@ public:
 	{
 		stack<OctreeBase*> trees;
 
-		Ray inverseRay = ray.inverse();
+                Ray inverseRay(ray.inverse());
 
 		if (boundingBox.intersects(ray) || boundingBox.intersects(inverseRay))
 			trees.push(this);
+                else
+                    return;
 
 		while(!trees.empty())
 		{
@@ -272,39 +274,11 @@ public:
 				}
 			}
 		}
-	}
-
-	int intersectRayBoth(const Ray& ray) 
-	{
-		stack<OctreeBase*> trees;
-
-		IndexSet tris;
-
-		Ray inverseRay = ray.inverse();
-
-		if (boundingBox.intersects(ray) || boundingBox.intersects(inverseRay))
-			trees.push(this);
-
-		while(!trees.empty())
-		{
-			OctreeBase * t = trees.top(); trees.pop();
-
-			if (!t->intersectHit(tris))
-			{
-				for (typename Vector<OctreeBase<FaceType> >::iterator child = t->children.begin(); child != t->children.end(); child++)
-				{
-					if (child->boundingBox.intersects(ray) || child->boundingBox.intersects(inverseRay))
-						trees.push(&(*child));
-				}
-			}
-		}
-
-		return -1;
 	}
 
 	FaceType findClosestTri(const Ray & ray, IndexSet & tris, Mesh * mesh, HitResult & hitRes)
 	{
-		double minDist = FLT_MAX;
+                double minDist = DBL_MAX;
 		FaceType closestFace = NULL, curr_FaceType = NULL;
 
 		double u = 0.0, v = 0.0;
@@ -342,7 +316,7 @@ public:
 		else
 		{
 			hitRes.hit = false;
-			hitRes.distance = FLT_MAX;
+                        hitRes.distance = DBL_MAX;
 			hitRes.index = -1;
 		}
 

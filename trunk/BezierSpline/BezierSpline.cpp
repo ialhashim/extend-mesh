@@ -639,7 +639,7 @@ double BezierSpline::GetTimeClosestPoint( const Vec & point ) const
 {
 	int n = m_pieces.size();
 
-	double minDist = FLT_MAX;
+        double minDist = DBL_MAX;
 	int minIndex = -1;
 
 	// Find closest curve segment
