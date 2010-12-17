@@ -640,6 +640,10 @@
 			Name="GraphicsLibrary"
 			>
 			<File
+				RelativePath=".\GraphicsLibrary\BoundingBox.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\GraphicsLibrary\BoundingBox.h"
 				>
 			</File>
@@ -697,6 +701,10 @@
 			</File>
 			<File
 				RelativePath=".\GraphicsLibrary\Mesh.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GraphicsLibrary\Octree.cpp"
 				>
 			</File>
 			<File

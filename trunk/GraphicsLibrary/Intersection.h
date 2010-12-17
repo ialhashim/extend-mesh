@@ -122,3 +122,15 @@ struct Ray
 #undef X
 #undef Y
 #undef Z
+
+static inline void checkMinMax( Vec& vmin, Vec& vmax, const Vec& point )
+{
+	if (point.x < vmin.x)		vmin.x = point.x;
+	else if (point.x > vmax.x)	vmax.x = point.x;
+
+	if (point.y < vmin.y)		vmin.y = point.y;
+	else if (point.y > vmax.y)	vmax.y = point.y;
+
+	if (point.z < vmin.z)		vmin.z = point.z;
+	else if (point.z > vmax.z)	vmax.z = point.z;
+}
