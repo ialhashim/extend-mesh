@@ -66,22 +66,6 @@ void BoundingBox::computeFromTris( const Vector<BaseTriangle*>& tris )
 	this->zExtent = vmax.z - center.z;
 }
 
-void BoundingBox::computeFromTri( const Vec& v1, const Vec& v2, const Vec& v3 )
-{
-	Vec vmin (FLT_MAX, FLT_MAX, FLT_MAX);
-	Vec vmax (FLT_MIN, FLT_MIN, FLT_MIN);
-
-	checkMinMax(vmin, vmax, v1);
-	checkMinMax(vmin, vmax, v2);
-	checkMinMax(vmin, vmax, v3);
-
-	center = (vmin + vmax) / 2.0;
-
-	xExtent = vmax.x - center.x;
-	yExtent = vmax.y - center.y;
-	zExtent = vmax.z - center.z;
-}
-
 Vector<Vec> BoundingBox::getCorners()
 {
 	Vector<Vec> corners;
@@ -154,74 +138,80 @@ bool BoundingBox::intersects( const Ray& ray ) const
 	return true;
 }
 
-bool BoundingBox::planeBoxOverlap( const Vec& normal, double d, const Vec& maxbox ) const
+/* AABB-triangle overlap test code                      */
+/* by Tomas Akenine-Möller                              */
+bool BoundingBox::containsTriangle( const Vec& tv0, const Vec& tv1, const Vec& tv2 ) const
 {
-	Vec vmin, vmax;
-
-	for(int q = 0 ; q < 3 ; q++)
-	{
-		if(normal[q] > 0){
-			vmin[q] = -maxbox[q];
-			vmax[q] = maxbox[q];
-		} else {
-			vmin[q] = maxbox[q];
-			vmax[q] = -maxbox[q];
-		}
-	}
-
-	if((normal * vmin) + d > 0.0) return false;
-	if((normal * vmax) + d >= 0.0) return true;
-
-	return false;
-}
-
-bool BoundingBox::containsTriangle( const Vec& tv1, const Vec& tv2, const Vec& tv3 ) const
-{
-	int X = 0, Y = 1, Z = 2;
-	Vec v0, v1, v2;
-	Vec normal,e0,e1,e2;
-	double min=0,max=0,d=0,p0=0,p1=0,p2=0,rad=0,fex=0,fey=0,fez=0;
-
+	Vec boxcenter(center);
 	Vec boxhalfsize(xExtent, yExtent, zExtent);
 
-	v0 = tv1 - center;	v1 = tv2 - center;	v2 = tv3 - center;
-	e0 = v1 - v0;		e1 = v2 - v1;		e2 = v0 - v2;
+	int X = 0, Y = 1, Z = 2;
 
+	/*    use separating axis theorem to test overlap between triangle and box */
+	/*    need to test for overlap in these directions: */
+	/*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
+	/*       we do not even need to test these) */
+	/*    2) normal of the triangle */
+	/*    3) crossproduct(edge from tri, {x,y,z}-directin) */
+	/*       this gives 3x3=9 more tests */
+	Vec v0,v1,v2;
+	double min,max,p0,p1,p2,rad,fex,fey,fez;
+	Vec normal,e0,e1,e2;
+
+	/* This is the fastest branch on Sun */
+	/* move everything so that the box center is in (0,0,0) */
+	v0=tv0-boxcenter;
+	v1=tv1-boxcenter;
+	v2=tv2-boxcenter;
+	
+	/* compute triangle edges */
+	e0=v1-v0;      /* tri edge 0 */
+	e1=v2-v1;      /* tri edge 1 */
+	e2=v0-v2;      /* tri edge 2 */
+	
 	/* Bullet 3:  */
 	/*  test the 9 tests first (this was faster) */
-	fex = abs(e0[X]); fey = abs(e0[Y]); fez = abs(e0[Z]);
+	fex = fabsf(e0[X]);
+	fey = fabsf(e0[Y]);
+	fez = fabsf(e0[Z]);
 	AXISTEST_X01(e0[Z], e0[Y], fez, fey);
 	AXISTEST_Y02(e0[Z], e0[X], fez, fex);
 	AXISTEST_Z12(e0[Y], e0[X], fey, fex);
-
-	fex = abs(e1[X]); fey = abs(e1[Y]); fez = abs(e1[Z]);
+	fex = fabsf(e1[X]);
+	fey = fabsf(e1[Y]);
+	fez = fabsf(e1[Z]);
 	AXISTEST_X01(e1[Z], e1[Y], fez, fey);
 	AXISTEST_Y02(e1[Z], e1[X], fez, fex);
 	AXISTEST_Z0(e1[Y], e1[X], fey, fex);
-
-	fex = abs(e2[X]); fey = abs(e2[Y]); fez = abs(e2[Z]);
+	fex = fabsf(e2[X]);
+	fey = fabsf(e2[Y]);
+	fez = fabsf(e2[Z]);
 	AXISTEST_X2(e2[Z], e2[Y], fez, fey);
 	AXISTEST_Y1(e2[Z], e2[X], fez, fex);
 	AXISTEST_Z12(e2[Y], e2[X], fey, fex);
-
+	
 	/* Bullet 1: */
-	FINDMINMAX(v0.x,v1.x,v2.x, min, max);	/* test in X-direction */
-	if(min > boxhalfsize.x || max < -boxhalfsize.x) return false;
-
-	FINDMINMAX(v0.y,v1.y,v2.y, min, max);	/* test in Y-direction */
-	if(min > boxhalfsize.y || max < -boxhalfsize.y) return false;
-
-	FINDMINMAX(v0.z,v1.z,v2.z, min, max); 	/* test in Z-direction */
-	if(min > boxhalfsize.z || max < -boxhalfsize.z) return false;
-
+	/*  first test overlap in the {x,y,z}-directions */
+	/*  find min, max of the triangle each direction, and test for overlap in */
+	/*  that direction -- this is equivalent to testing a minimal AABB around */
+	/*  the triangle against the AABB */
+	/* test in X-direction */
+	FINDMINMAX(v0[X],v1[X],v2[X],min,max);
+	if(min>boxhalfsize[X] || max<-boxhalfsize[X]) return 0;
+	/* test in Y-direction */
+	FINDMINMAX(v0[Y],v1[Y],v2[Y],min,max);
+	if(min>boxhalfsize[Y] || max<-boxhalfsize[Y]) return 0;
+	/* test in Z-direction */
+	FINDMINMAX(v0[Z],v1[Z],v2[Z],min,max);
+	if(min>boxhalfsize[Z] || max<-boxhalfsize[Z]) return 0;
+	
+	/* Bullet 2: */
 	/*  test if the box intersects the plane of the triangle */
+	/*  compute plane equation of triangle: normal*x+d=0 */
 	normal = e0 ^ e1;
-	d = -(v0 * normal);  	/* plane eq: normal.x+d=0 */
 
-	if(!planeBoxOverlap(normal, d, boxhalfsize))
-		return false;
-
-	return true;
+	if(!planeBoxOverlap(normal,v0,boxhalfsize)) return 0;
+	return 1;   /* box and triangle overlaps */
 }
 
 bool BoundingBox::intersectsBoundingBox( const BoundingBox& bb ) const
