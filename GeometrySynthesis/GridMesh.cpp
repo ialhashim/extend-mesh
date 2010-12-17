@@ -37,7 +37,7 @@ GridMesh::GridMesh(Grid * src_grid, const Rect & cropArea,
 	totalHeight = grid->widthCount;
 	totalWidth = cropArea.width() + extensionSize - 1;
 
-        square = Vector<Vector<GridSquare> >(totalHeight, Vector<GridSquare>(totalWidth));
+	square = Vector<Vector<GridSquare> >(totalHeight, Vector<GridSquare>(totalWidth));
 
 	// Split and Jump locations
 	splitIndex = start + (ceil(cropArea.width() * 0.5f) - 1);
@@ -51,7 +51,7 @@ GridMesh::GridMesh(Grid * src_grid, const Rect & cropArea,
 	originalEndCenter = c1.getCenter();
 
 	// Align extension curve to original shape
-	tangentAtSplit = grid->spinePoints[splitIndex + 1] - grid->spinePoints[splitIndex];
+	tangentAtSplit = (grid->spinePoints[splitIndex + 1] - grid->spinePoints[splitIndex]).unit();
 	extensionCurve->Align(tangentAtSplit);
 	extensionCurve->Translate(grid->spinePoints[splitIndex]);
 
@@ -63,21 +63,25 @@ GridMesh::GridMesh(Grid * src_grid, const Rect & cropArea,
 	// Find tangents
 	extensionTanget = extensionCurve->GetUniformTangent( segmentLength );
 
-	extensionTanget.push_back(extensionTanget.back()); // last tangent
+	extensionTanget.push_back( extensionTanget.back() );	// last tangent
 
 	for(int it = 0; it < 4; it++){
 		Vector<Vec> smooth = extensionTanget;
 
-                for(int i = 3; i < (int)extensionTanget.size() - 3; i++)
-			smooth[i] = ((  extensionTanget[i-3] + extensionTanget[i-2] + extensionTanget[i-1] 
-						  + extensionTanget[i+3] + extensionTanget[i+2] + extensionTanget[i+1] ) / 6.0f).unit();
+		for(int i = 3; i < (int)extensionTanget.size() - 3; i++)
+		{
+			smooth[i] = ((  extensionTanget[i-3] + extensionTanget[i-2] + 
+							extensionTanget[i-1] + extensionTanget[i+3] + 
+							extensionTanget[i+2] + extensionTanget[i+1] ) / 6.0f).unit();
+		}
+
 		extensionTanget = smooth;
 	}
 
 	// Check tangents direction
 	if(extensionTanget.front() * c1.getNormal() < 0)
 	{
-                for(int i = 0; i < (int)extensionPath.size(); i++)
+		for(int i = 0; i < (int)extensionPath.size(); i++)
 			extensionTanget[i] = -extensionTanget[i];
 	}
 
@@ -113,7 +117,7 @@ GridMesh::GridMesh(Grid * src_grid, const Rect & cropArea,
 			current = CrossSection(0, crossSection.back(), crossSection.back(), Color4(50,255,50)); // green-ish
 
 			// hack?
-                        if(e+1 >= (int)extensionPath.size())
+			if(e+1 >= (int)extensionPath.size())
 			{
 				Vec delta = extensionPath.back() - extensionPath[extensionPath.size() - 2];
 
@@ -141,7 +145,7 @@ GridMesh::GridMesh(Grid * src_grid, const Rect & cropArea,
 
 				endRotation = adjRot * endRotation;
 			}
-			
+
 			e++;
 		}
 
@@ -158,16 +162,16 @@ GridMesh::GridMesh(Grid * src_grid, const Rect & cropArea,
 	// Deal with cross-sections shapes
 	if(isSynthesizeCS)
 	{
-                MatrixXf csMatrix = fromVector2Df(grid->sectionsPattern());
+		MatrixXf csMatrix = fromVector2Df(grid->sectionsPattern());
 
 		if(isBlendCrossSections)
 		{
-                        extendedSections = tileBlendFromMap(csMatrix, bandSize, grid->item_int["tileCount"]);
+			extendedSections = tileBlendFromMap(csMatrix, bandSize, grid->item_int["tileCount"]);
 		}
 		else
 		{
 			// Correspond cross sections with synthesized patches
-                        extendedSections = synthFromMap(csMatrix, synthOutput);
+			extendedSections = synthFromMap(csMatrix, synthOutput);
 		}
 	}
 	else
@@ -188,22 +192,22 @@ GridMesh::GridMesh(Grid * src_grid, const Rect & cropArea,
 		//MatrixXf pattern = Matrixf::pattern(cols, rows, "wave", 12);
 
 		pattern.array() *= 0.75;
-		
+
 		extendedSections.array() += (pattern.array() * range);
 
 		/*for(int v = 0; v <= totalWidth; v++)
 		{
-			lastProfileScale = (float) (v * 0.9f) / (totalWidth) ;
+		lastProfileScale = (float) (v * 0.9f) / (totalWidth) ;
 
-			crossSection[v].scaleBy(lastProfileScale);
-			crossSection[v].translate(crossSection[v].getCenter() * (1.0f + (lastProfileScale / 2.0f)));
+		crossSection[v].scaleBy(lastProfileScale);
+		crossSection[v].translate(crossSection[v].getCenter() * (1.0f + (lastProfileScale / 2.0f)));
 		}*/
 	}
 	else
 		lastProfileScale = 1.0f;
 
 	// Apply cross-section pattern
-        for(int v = 0; v < (int)crossSection.size(); v++)
+	for(int v = 0; v < (int)crossSection.size(); v++)
 		crossSection[v].setLengths(column(v, extendedSections));
 
 	// add the squares coordinates
@@ -290,8 +294,8 @@ void GridMesh::Synthesize(Vector<Vector<Point> > & synthOutput)
 		}
 	}
 
-        // Reconstruction of elements
-        recon_points = Vector<Vector<HashMap<int, Vec> > >(totalHeight, Vector<HashMap<int, Vec> >(totalWidth));
+	// Reconstruction of elements
+	recon_points = Vector<Vector<HashMap<int, Vec> > >(totalHeight, Vector<HashMap<int, Vec> >(totalWidth));
 
 	// For each square, reconstruct all points
 	for(int v = 0; v < totalWidth; v++)
@@ -300,7 +304,7 @@ void GridMesh::Synthesize(Vector<Vector<Point> > & synthOutput)
 		{
 			for(Vector<GridPoint>::iterator p = square[u][v].points.begin(); p != square[u][v].points.end(); p++)
 			{
-                                Vec point = Reconstruct(p->w, &square[u][v], p->h, p->shiftAngle, p->shiftMagnitude);
+				Vec point = Reconstruct(p->w, &square[u][v], p->h, p->shiftAngle, p->shiftMagnitude);
 
 				// Used for triangulation
 				recon_points[u][v][p->corrPoint] = point;
@@ -326,13 +330,13 @@ void GridMesh::Triangulate()
 	// Get triangles that are in current patch
 	Vector<int> faces = *grid->getSelectedFaces();
 
-        int v0, v1, v2;
+	int v0, v1, v2;
 	Face * f;
 
 	// For each patch
-        for(int w = 0; w < (int)tri_patch.size(); w++)
+	for(int w = 0; w < (int)tri_patch.size(); w++)
 	{
-                IntSet patchPoints;	// store points in this patch
+		IntSet patchPoints;	// store points in this patch
 
 		// Get the points indices from patch's squares
 		for(Vector<SimpleSquare>::iterator it = tri_patch[w].patch.begin(); it != tri_patch[w].patch.end(); it++)
@@ -350,7 +354,7 @@ void GridMesh::Triangulate()
 		}
 
 		// If all points of a face is within this patch, include these points
-                for(int findex = 0; findex < (int)faces.size(); findex++)
+		for(int findex = 0; findex < (int)faces.size(); findex++)
 		{
 			f = mesh->f(faces[findex]);
 
@@ -375,15 +379,15 @@ void GridMesh::Triangulate()
 		}
 	}
 
-        printf(".Triangulated patches done. (%d ms)\n", (int)timer.elapsed());
-        CreateTimer(patchTimer);
+	printf(".Triangulated patches done. (%d ms)\n", (int)timer.elapsed());
+	CreateTimer(patchTimer);
 
 	// Create patches as triangulated meshes
-	#pragma omp parallel for
-        for(int w = 0; w < (int)tri_patch.size(); w++)
+#pragma omp parallel for
+	for(int w = 0; w < (int)tri_patch.size(); w++)
 		tri_patch[w].makeMesh();
 
-        printf(".Finalizing patches. (%d ms)\n", (int)patchTimer.elapsed());
+	printf(".Finalizing patches. (%d ms)\n", (int)patchTimer.elapsed());
 
 	isDrawTriangulated = true;
 
@@ -404,7 +408,7 @@ void GridMesh::BlendPatches()
 
 		recon = new Reconstructor(this);
 
-                printf("\n.Reconstructor. (%d ms)\n", (int)timer.elapsed());
+		printf("\n.Reconstructor. (%d ms)\n", (int)timer.elapsed());
 	}
 
 	// Using cross-sections blending
@@ -430,7 +434,7 @@ void GridMesh::CreateFullPatches()
 	StdSet<Face*> fullPatchFaces = grid->getBaseMesh()->getFacesFromVertices(fullPatchVerts, true);
 	int n = fullPatchVerts.size();
 
-        for(int w = 0; w < (int)tri_patch.size(); w++)
+	for(int w = 0; w < (int)tri_patch.size(); w++)
 	{
 		SimpleSquare s = tri_patch[w].patch.front();
 
@@ -442,7 +446,7 @@ void GridMesh::CreateFullPatches()
 	}
 
 	// Create full patch meshes
-        for(int i = 0; i < (int)tri_patch.size(); i++)
+	for(int i = 0; i < (int)tri_patch.size(); i++)
 	{
 		SimpleSquare start = fullPatchStarts[i];
 
@@ -515,7 +519,7 @@ void GridMesh::CreateFullPatches()
 
 			// Adjust looped parameter triangles
 			float threshold = grid->widthCount * 0.5f; // half the height
-			
+
 			Vector<Triangle> tempTris;
 
 			for(Vector<Triangle>::iterator t = ptris.begin(); t != ptris.end(); t++)
@@ -528,17 +532,17 @@ void GridMesh::CreateFullPatches()
 				if(other.flag == MODIFIED_TRI)	tempTris.push_back(other);
 			}
 
-                        tri_patch[i].parameterTriangles = tempTris;
+			tri_patch[i].parameterTriangles = tempTris;
 
 			// Build octree of paramter domain
-                        tri_patch[i].parameterOctree.initBuild(tri_patch[i].parameterTriPointers(), 30 );
+			tri_patch[i].parameterOctree.initBuild(tri_patch[i].parameterTriPointers(), 30 );
 		}
-	
+
 		// Compute normals for detailed
 		tri_patch[i].fpdMesh.computeNormals();
 	}
 
-        printf(".Done (%d ms).\n", (int)timer.elapsed());
+	printf(".Done (%d ms).\n", (int)timer.elapsed());
 }
 
 void GridMesh::getAllPatches()
@@ -564,19 +568,19 @@ void GridMesh::getAllPatches()
 
 	if(isSampleSeams)
 	{
-                CreateTimer(borderTimer);
+		CreateTimer(borderTimer);
 
-                #pragma omp parallel for
-                for(int i = 0; i < (int)tri_patch.size(); i++)
+#pragma omp parallel for
+		for(int i = 0; i < (int)tri_patch.size(); i++)
 		{
 			// Unroll the patch
 			tri_patch[i].unrolledPatch = unroll(tri_patch[i].patch, tri_patch[i].start_x, tri_patch[i].start_y);
 			tri_patch[i].border = findPatchBorders(tri_patch[i].unrolledPatch, 2);
 		}
-                printf(".Border (%d).", (int)borderTimer.elapsed());
+		printf(".Border (%d).", (int)borderTimer.elapsed());
 	}
 
-        printf(".Patches found (%d) (%d ms).", tri_patch.size(), (int)timer.elapsed());
+	printf(".Patches found (%d) (%d ms).", tri_patch.size(), (int)timer.elapsed());
 }
 
 Vector<SimpleSquare> GridMesh::getNextPatch()
@@ -635,8 +639,8 @@ Vector<SimpleSquare> GridMesh::findPatchBorders( const Vector<Vector<SimpleSquar
 	Vector<SimpleSquare> border;
 
 	// Convert to 2D grid
-        Vector<Vector<SimpleSquare> > patch = inputPatch; // local copy
-        Vector<Vector<SimpleSquare> > currPatch = patch;
+	Vector<Vector<SimpleSquare> > patch = inputPatch; // local copy
+	Vector<Vector<SimpleSquare> > currPatch = patch;
 
 	int width = patch[0].size();
 	int height = patch.size();
@@ -672,12 +676,12 @@ Vector<SimpleSquare> GridMesh::findPatchBorders( const Vector<Vector<SimpleSquar
 						}
 						else
 							if (i0 == -1 || i1 == height) isBorder = true;
-						
+
 						if(!isBorder)
 						{
 							if(currPatch[i0][j0].isEmpty()	||	currPatch[i0][j ].isEmpty()	|| currPatch[i0][j1].isEmpty()
-							|| currPatch[i1][j0].isEmpty()	||	currPatch[i1][j ].isEmpty()	|| currPatch[i1][j1].isEmpty()
-							|| currPatch[i ][j0].isEmpty()	||	currPatch[i ][j1].isEmpty())
+								|| currPatch[i1][j0].isEmpty()	||	currPatch[i1][j ].isEmpty()	|| currPatch[i1][j1].isEmpty()
+								|| currPatch[i ][j0].isEmpty()	||	currPatch[i ][j1].isEmpty())
 								isBorder = true;
 						}
 					}
@@ -716,7 +720,7 @@ Vector<Vector<SimpleSquare> > GridMesh::unroll( const Vector<SimpleSquare> & pat
 	int height = (end_y - start_y) + 1;
 
 	// Create empty field
-        Vector<Vector<SimpleSquare> > result(height, Vector<SimpleSquare>(width));
+	Vector<Vector<SimpleSquare> > result(height, Vector<SimpleSquare>(width));
 
 	// unroll list into field
 	for(Vector<SimpleSquare>::const_iterator s = patch.begin(); s!= patch.end(); s++)
@@ -910,7 +914,7 @@ void GridMesh::outputGridMesh()
 {
 	Mesh m;
 
-        for(int i = 0; i < (int)tri_patch.size(); i++)
+	for(int i = 0; i < (int)tri_patch.size(); i++)
 		m.mergeWith(tri_patch[i].mesh);
 
 	m.saveToFile("output_gridMesh.obj");
@@ -957,25 +961,25 @@ void GridMesh::draw()
 	/*glColor4f(1,1,1, 0.5f);
 	glBegin(GL_QUADS);
 	for(int v = 0; v < totalWidth; v++){
-		for(int u = 0; u < totalHeight; u++){
-			glVertex3fv(c[square[u][v].p[0]]);
-			glVertex3fv(c[square[u][v].p[1]]);
-			glVertex3fv(c[square[u][v].p[2]]);
-			glVertex3fv(c[square[u][v].p[3]]);			
-		}
+	for(int u = 0; u < totalHeight; u++){
+	glVertex3fv(c[square[u][v].p[0]]);
+	glVertex3fv(c[square[u][v].p[1]]);
+	glVertex3fv(c[square[u][v].p[2]]);
+	glVertex3fv(c[square[u][v].p[3]]);			
+	}
 	}
 	glEnd();*/
 
 	if(isDrawColoredPatches)
 	{
 		// Draw each patch in a different color
-                for(int w = 0; w < (int)tri_patch.size(); w++)
+		for(int w = 0; w < (int)tri_patch.size(); w++)
 		{
 			Color4 color = tri_patch[w].falseColor;
 			Vector<SimpleSquare> * patch = &tri_patch[w].patch;
 
 			// DRAW SQUARES
-                        Vector<Vector<Vec> > patchSquares(patch->size(), Vector<Vec>(4));
+			Vector<Vector<Vec> > patchSquares(patch->size(), Vector<Vec>(4));
 			int sc = 0;
 			for(Vector<SimpleSquare>::iterator it = patch->begin(); it != patch->end(); it++){
 				GridSquare * s = &square[it->u][it->v];
@@ -989,15 +993,15 @@ void GridMesh::draw()
 			/*Vector<SimpleSquare> border = tri_patch[w].border;
 			Vector<Vector<Vec>> borderSquare; sc = 0;
 			for(Vector<SimpleSquare>::iterator it = border.begin(); it != border.end(); it++){
-				GridSquare * s = &square[it->u][it->v];
-				borderSquare.push_back(Vector<Vec>(4));
-				borderSquare[sc][0] = c[s->p[0]];	borderSquare[sc][1] = c[s->p[1]];
-				borderSquare[sc][2] = c[s->p[2]];	borderSquare[sc][3] = c[s->p[3]];
-				sc++;
+			GridSquare * s = &square[it->u][it->v];
+			borderSquare.push_back(Vector<Vec>(4));
+			borderSquare[sc][0] = c[s->p[0]];	borderSquare[sc][1] = c[s->p[1]];
+			borderSquare[sc][2] = c[s->p[2]];	borderSquare[sc][3] = c[s->p[3]];
+			sc++;
 			}*/
 			//glClear(GL_DEPTH_BUFFER_BIT);
 			//SimpleDraw::DrawSquares(borderSquare, true, color.r(), color.g(), color.b(), 1.0f);
-			
+
 			glColor3f(color.r(), color.g(), color.b());
 
 			//tri_patch[w].fpbMesh.drawSimpleWireframe(false);
@@ -1005,23 +1009,23 @@ void GridMesh::draw()
 
 			/*// PARAMTER TRIANGLES VISUALIZATION
 			for(int w = 0; w < tri_patch.size(); w++){
-				foreach(Triangle t, tri_patch[w].parameterTriangle){
-					Color4 color = tri_patch[w].falseColor;
-					SimpleDraw::DrawTriangle(t.p1, t.p2, t.p3, color.r(), color.g(), color.b());
-				}
+			foreach(Triangle t, tri_patch[w].parameterTriangle){
+			Color4 color = tri_patch[w].falseColor;
+			SimpleDraw::DrawTriangle(t.p1, t.p2, t.p3, color.r(), color.g(), color.b());
+			}
 			}*/
 		}
 	}
 
 	if(isDrawCrossSections)
 	{
-                for(int i = 0; i < (int)crossSection.size(); i++)
+		for(int i = 0; i < (int)crossSection.size(); i++)
 			crossSection[i].draw(2.0f);
 
-                for(int i = 0; i < (int)special_cs.size(); i++)
+		for(int i = 0; i < (int)special_cs.size(); i++)
 			special_cs[i].draw(6.0f);
 
-                int numFrames = Min((int)localFrames.size(), (int)extensionPath.size());
+		int numFrames = Min((int)localFrames.size(), (int)extensionPath.size());
 		for(int i = 0; i < numFrames; i++)
 			localFrames[i].draw(extensionPath[i]);
 
@@ -1063,7 +1067,7 @@ void GridMesh::draw()
 		{
 			// Draw reconstructed points
 			glBegin(GL_POINTS);
-                        for(int i = 0; i < (int)points.size(); i++)
+			for(int i = 0; i < (int)points.size(); i++)
 			{
 				if(isDrawWithNormals)
 				{

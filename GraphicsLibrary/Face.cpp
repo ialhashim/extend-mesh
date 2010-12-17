@@ -1,5 +1,7 @@
 #include "Face.h"
 
+#include "ExtendMeshHeaders.h"
+
 Face::Face(int vIndex1, int vIndex2, int vIndex3, Vertex * v1, Vertex * v2, Vertex * v3, int Index) 
 {
 	vIndex[0] = vIndex1;
@@ -59,7 +61,7 @@ Vec Face::normal() const
 		return n /= length;
 }
 
-Vec Face::center()
+Vec Face::center() const
 {
 	Vec c;
 
@@ -70,7 +72,7 @@ Vec Face::center()
 	return c;
 }
 
-Vec Face::getBary(double U, double V)
+Vec Face::getBary(double U, double V) const
 {
 	if(U == 1.0) return *v[1];
 	if(V == 1.0) return *v[2];
@@ -387,7 +389,7 @@ void Face::intersectionTest(const Ray & ray, HitResult & res, bool allowBack) co
 	res.hit = false;
 	res.distance = FLT_MAX;
 
-	double EPS = 0.0001;
+	double EPS = Epsilon;
 
 	Vec vertex1 = *v[0];
 	Vec vertex2 = *v[1];
@@ -443,48 +445,5 @@ void Face::intersectionTest(const Ray & ray, HitResult & res, bool allowBack) co
 	res.u = triangleU;
 	res.v = triangleV;
 
-	res.index = this->index;
-}
-
-// Based on http://www.gamedev.net/community/forums/topic.asp?topic_id=447861
-void Face::intersectionTest2(const Ray & ray, HitResult & res)
-{
-	// structure for holding the result of the test
-	res.distance = FLT_MAX;
-	res.hit = false;
-	
-	Vec edge1(v[1]->x - v[0]->x, v[1]->y - v[0]->y, v[1]->z - v[0]->z); //  v1 - v0;
-	Vec edge2(v[2]->x - v[0]->x, v[2]->y - v[0]->y, v[2]->z - v[0]->z); //  v2 - v0;
-	
-	// Find the cross product of edge2 and the ray direction
-	Vec s1(	ray.direction.y*edge2.z - ray.direction.z*edge2.y, 
-			ray.direction.z*edge2.x - ray.direction.x*edge2.z, 
-			ray.direction.x*edge2.y - ray.direction.y*edge2.x); //ray.direction ^ edge2;
-	
-	// Find the divisor, if its zero, return false as the triangle is degenerated
-	double divisor = s1 * edge1;
-	if (divisor == 0.0)
-		return;
-	
-	// A inverted divisor, as multiplying is faster then division
-	double invDivisor = 1.0 / divisor;
-	
-	// Calculate the first barycentric coordinate. barycentric coordinates are between 0.0 and 1.0
-	Vec distance (ray.origin.x - v[0]->x, ray.origin.y - v[0]->y, ray.origin.z - v[0]->z);
-	double barycCoord_1 = (distance * s1) * invDivisor;
-	if (barycCoord_1 < 0.0 || barycCoord_1 > 1.0)
-		return;
-	
-	// Calculate the second barycentric coordinate
-	Vec s2 = distance ^ edge1;
-	double barycCoord_2 = (ray.direction * s2) * invDivisor;
-	if (barycCoord_2 < 0.0 || (barycCoord_1 + barycCoord_2) > 1.0)
-		return;
-	
-	// After doing the barycentric coordinate test we know if the ray hits or 
-	// not. If we got this far the ray hits. 
-
-	res.hit = true;
-	res.distance = (edge2 * s2) * invDivisor;  // Calculate the distance to the intersection point 
 	res.index = this->index;
 }

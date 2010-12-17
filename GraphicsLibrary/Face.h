@@ -50,9 +50,9 @@ public:
 	// COMPUTE NORMAL
 	Vec normal() const;
 
-	// COMPUTE CENTER & FROM Barycentrics
-	Vec center();
-	Vec getBary(double U, double V);
+	// COMPUTE CENTER & POINT from Barycentric
+	Vec center() const;
+	Vec getBary(double U, double V) const;
 
 	// EDGE OPERATIONS
 	bool hasEdge(Edge & e);
