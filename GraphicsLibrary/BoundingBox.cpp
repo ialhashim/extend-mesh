@@ -1,0 +1,255 @@
+#include "BoundingBox.h"
+
+BoundingBox::BoundingBox()
+{
+	this->center = Vec(FLT_MIN,FLT_MIN,FLT_MIN);
+
+	this->xExtent = 0;
+	this->yExtent = 0;
+	this->zExtent = 0;
+}
+
+BoundingBox::BoundingBox( const Vec& c, double x, double y, double z )
+{
+	this->center = c;
+
+	this->xExtent = x;
+	this->yExtent = y;
+	this->zExtent = z;
+}
+
+BoundingBox& BoundingBox::operator=( const BoundingBox& other )
+{
+	this->center = other.center;
+
+	this->xExtent = other.xExtent;
+	this->yExtent = other.yExtent;
+	this->zExtent = other.zExtent;
+
+	return *this;
+}
+
+void BoundingBox::computeFromTris( const Vector<BaseTriangle*>& tris )
+{
+	Vec vmin (FLT_MAX, FLT_MAX, FLT_MAX);
+	Vec vmax (FLT_MIN, FLT_MIN, FLT_MIN);
+
+	double minx = 0, miny = 0, minz = 0;
+	double maxx = 0, maxy = 0, maxz = 0;
+
+	minx = maxx = tris[0]->vec(0).x;
+	miny = maxy = tris[0]->vec(0).y;
+	minz = maxz = tris[0]->vec(0).z;
+
+	for (int i = 0; i < (int)tris.size(); i++)
+	{
+		for(int v = 0; v < 3; v++)
+		{
+			Vec vec = tris[i]->vec(v);
+
+			if (vec.x < minx) minx = vec.x;
+			if (vec.x > maxx) maxx = vec.x;
+			if (vec.y < miny) miny = vec.y;
+			if (vec.y > maxy) maxy = vec.y;
+			if (vec.z < minz) minz = vec.z;
+			if (vec.z > maxz) maxz = vec.z;
+		}
+	}
+
+	vmax = Vec(maxx, maxy, maxz);
+	vmin = Vec(minx, miny, minz);
+
+	this->center = (vmin + vmax) / 2.0;
+
+	this->xExtent = vmax.x - center.x;
+	this->yExtent = vmax.y - center.y;
+	this->zExtent = vmax.z - center.z;
+}
+
+void BoundingBox::computeFromTri( const Vec& v1, const Vec& v2, const Vec& v3 )
+{
+	Vec vmin (FLT_MAX, FLT_MAX, FLT_MAX);
+	Vec vmax (FLT_MIN, FLT_MIN, FLT_MIN);
+
+	checkMinMax(vmin, vmax, v1);
+	checkMinMax(vmin, vmax, v2);
+	checkMinMax(vmin, vmax, v3);
+
+	center = (vmin + vmax) / 2.0;
+
+	xExtent = vmax.x - center.x;
+	yExtent = vmax.y - center.y;
+	zExtent = vmax.z - center.z;
+}
+
+Vector<Vec> BoundingBox::getCorners()
+{
+	Vector<Vec> corners;
+
+	Vec x = (Vec(1,0,0) * xExtent);
+	Vec y = (Vec(0,1,0) * yExtent);
+	Vec z = (Vec(0,0,1) * zExtent);
+
+	Vec c = center + x + y + z;
+
+	corners.push_back(c);
+	corners.push_back(c - (x*2));
+	corners.push_back(c - (y*2));
+	corners.push_back(c - (x*2) - (y*2));
+
+	corners.push_back(corners[0] - (z*2));
+	corners.push_back(corners[1] - (z*2));
+	corners.push_back(corners[2] - (z*2));
+	corners.push_back(corners[3] - (z*2));
+
+	return corners;
+}
+
+bool BoundingBox::intersects( const Ray& ray ) const
+{
+	double rhs;
+	double fWdU[3];
+	double fAWdU[3];
+	double fDdU[3];
+	double fADdU[3];
+	double fAWxDdU[3];
+
+	Vec UNIT_X(1.0, 0.0, 0.0);
+	Vec UNIT_Y(0.0, 1.0, 0.0);
+	Vec UNIT_Z(0.0, 0.0, 1.0);
+
+	Vec diff = ray.origin - center;
+	Vec wCrossD = ray.direction ^ diff;
+
+	fWdU[0] = ray.direction * UNIT_X;
+	fAWdU[0] = abs(fWdU[0]);
+	fDdU[0] = diff * UNIT_X;
+	fADdU[0] = abs(fDdU[0]);
+	if (fADdU[0] > xExtent && fDdU[0] * fWdU[0] >= 0.0)		return false;
+
+	fWdU[1] = ray.direction * UNIT_Y;
+	fAWdU[1] = abs(fWdU[1]);
+	fDdU[1] = diff * UNIT_Y;
+	fADdU[1] = abs(fDdU[1]);
+	if (fADdU[1] > yExtent && fDdU[1] * fWdU[1] >= 0.0)		return false;
+
+	fWdU[2] = ray.direction * UNIT_Z;
+	fAWdU[2] = abs(fWdU[2]);
+	fDdU[2] = diff * UNIT_Z;
+	fADdU[2] = abs(fDdU[2]);
+	if (fADdU[2] > zExtent && fDdU[2] * fWdU[2] >= 0.0)		return false;
+
+	fAWxDdU[0] = abs(wCrossD * UNIT_X);
+	rhs = yExtent * fAWdU[2] + zExtent * fAWdU[1];
+	if (fAWxDdU[0] > rhs)		return false;
+
+	fAWxDdU[1] = abs(wCrossD * UNIT_Y);
+	rhs = xExtent * fAWdU[2] + zExtent * fAWdU[0];
+	if (fAWxDdU[1] > rhs)		return false;
+
+	fAWxDdU[2] = abs(wCrossD * UNIT_Z);
+	rhs = xExtent * fAWdU[1] + yExtent * fAWdU[0];
+	if (fAWxDdU[2] > rhs)		return false;
+
+	return true;
+}
+
+bool BoundingBox::planeBoxOverlap( const Vec& normal, double d, const Vec& maxbox ) const
+{
+	Vec vmin, vmax;
+
+	for(int q = 0 ; q < 3 ; q++)
+	{
+		if(normal[q] > 0){
+			vmin[q] = -maxbox[q];
+			vmax[q] = maxbox[q];
+		} else {
+			vmin[q] = maxbox[q];
+			vmax[q] = -maxbox[q];
+		}
+	}
+
+	if((normal * vmin) + d > 0.0) return false;
+	if((normal * vmax) + d >= 0.0) return true;
+
+	return false;
+}
+
+bool BoundingBox::containsTriangle( const Vec& tv1, const Vec& tv2, const Vec& tv3 ) const
+{
+	int X = 0, Y = 1, Z = 2;
+	Vec v0, v1, v2;
+	Vec normal,e0,e1,e2;
+	double min=0,max=0,d=0,p0=0,p1=0,p2=0,rad=0,fex=0,fey=0,fez=0;
+
+	Vec boxhalfsize(xExtent, yExtent, zExtent);
+
+	v0 = tv1 - center;	v1 = tv2 - center;	v2 = tv3 - center;
+	e0 = v1 - v0;		e1 = v2 - v1;		e2 = v0 - v2;
+
+	/* Bullet 3:  */
+	/*  test the 9 tests first (this was faster) */
+	fex = abs(e0[X]); fey = abs(e0[Y]); fez = abs(e0[Z]);
+	AXISTEST_X01(e0[Z], e0[Y], fez, fey);
+	AXISTEST_Y02(e0[Z], e0[X], fez, fex);
+	AXISTEST_Z12(e0[Y], e0[X], fey, fex);
+
+	fex = abs(e1[X]); fey = abs(e1[Y]); fez = abs(e1[Z]);
+	AXISTEST_X01(e1[Z], e1[Y], fez, fey);
+	AXISTEST_Y02(e1[Z], e1[X], fez, fex);
+	AXISTEST_Z0(e1[Y], e1[X], fey, fex);
+
+	fex = abs(e2[X]); fey = abs(e2[Y]); fez = abs(e2[Z]);
+	AXISTEST_X2(e2[Z], e2[Y], fez, fey);
+	AXISTEST_Y1(e2[Z], e2[X], fez, fex);
+	AXISTEST_Z12(e2[Y], e2[X], fey, fex);
+
+	/* Bullet 1: */
+	FINDMINMAX(v0.x,v1.x,v2.x, min, max);	/* test in X-direction */
+	if(min > boxhalfsize.x || max < -boxhalfsize.x) return false;
+
+	FINDMINMAX(v0.y,v1.y,v2.y, min, max);	/* test in Y-direction */
+	if(min > boxhalfsize.y || max < -boxhalfsize.y) return false;
+
+	FINDMINMAX(v0.z,v1.z,v2.z, min, max); 	/* test in Z-direction */
+	if(min > boxhalfsize.z || max < -boxhalfsize.z) return false;
+
+	/*  test if the box intersects the plane of the triangle */
+	normal = e0 ^ e1;
+	d = -(v0 * normal);  	/* plane eq: normal.x+d=0 */
+
+	if(!planeBoxOverlap(normal, d, boxhalfsize))
+		return false;
+
+	return true;
+}
+
+bool BoundingBox::intersectsBoundingBox( const BoundingBox& bb ) const
+{
+	if (center.x + xExtent < bb.center.x - bb.xExtent || center.x - xExtent > bb.center.x + bb.xExtent)
+		return false;
+	else if (center.y + yExtent < bb.center.y - bb.yExtent || center.y - yExtent > bb.center.y + bb.yExtent)
+		return false;
+	else if (center.z + zExtent < bb.center.z - bb.zExtent || center.z - zExtent > bb.center.z + bb.zExtent)
+		return false;
+	else
+		return true;
+}
+
+bool BoundingBox::intersectsSphere( const Vec& sphere_center, double radius )
+{
+	if (abs(center.x - sphere_center.x) < radius + xExtent
+		&& abs(center.y - sphere_center.y) < radius + yExtent
+		&& abs(center.z - sphere_center.z) < radius + zExtent)
+		return true;
+
+	return false;
+}
+
+
+bool BoundingBox::contains( const Vec& point ) const
+{
+	return abs(center.x - point.x) < xExtent
+		&& abs(center.y - point.y) < yExtent
+		&& abs(center.z - point.z) < zExtent;
+}
