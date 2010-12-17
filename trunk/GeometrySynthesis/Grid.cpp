@@ -5,12 +5,17 @@
 #include "ExtendMeshHeaders.h"
 
 Grid::Grid(Vector<Vec> & src_spine, double radius, double Length, int sizeOfGrid, 
-		   SmoothStairway * Stair, StdList<Face*> & MeshFaces, int rotateLeft, int rotateRight)
+                   SmoothStairway * Stair, const StdList<Face*>& MeshFaces, int rotateLeft, int rotateRight)
 {
 	this->isReady = false;
 
 	this->stair = Stair;
-	this->meshFaces = &MeshFaces;
+
+        // Copy pointers
+        foreach(Face * face, MeshFaces)
+        {
+            this->meshFaces.push_back(face);
+        }
 
 	if (src_spine.size() < 2 || sizeOfGrid < 3)	return;
 
@@ -173,7 +178,7 @@ Grid::Grid(Vector<Vec> & src_spine, double radius, double Length, int sizeOfGrid
 	printf(".grid constructed (w = %d, l = %d).", widthCount, lengthCount);
 }
 
-void Grid::FitCrossSections(Mesh * m, bool useEntireMesh)
+void Grid::FitCrossSections()
 {
 	polygon.clear();
 	shapes.clear();
@@ -200,20 +205,13 @@ void Grid::FitCrossSections(Mesh * m, bool useEntireMesh)
 		polygon.push_back(ClosedPolygon(csPlane[v], localFrames[v].up, localFrames[v].b));
 	}
 
-	// Experiment : multi step fitting
-	StdList<Face*> faces = *meshFaces;
-	if(useEntireMesh)
-		faces = m->facesListPointers();
-
 	for(int v = 0; v < lengthCount + 1; v++)
 	{
-		for(StdList<Face*>::iterator f = faces.begin(); f != faces.end(); f++)
+                for(StdList<BaseTriangle*>::iterator f = meshFaces.begin(); f != meshFaces.end(); f++)
 		{
 			Vec p1, p2;	
 
-			Face * face = (*f);
-
-			int isContour = csPlane[v].ContourFacet(face, p1, p2);
+                        int isContour = csPlane[v].ContourFacet(*f, p1, p2);
 
 			if(isContour > 0)
 			{
@@ -280,7 +278,7 @@ void Grid::SmoothCrossSecitons(int numIterations)
 
 void Grid::FitCylinder()
 {
-	Face * face = NULL;
+        BaseTriangle * face = NULL;
 
 	HitResult res;
 	Ray ray;
@@ -292,12 +290,12 @@ void Grid::FitCylinder()
 		ray.direction = vNormal[i];
 
 		// Check contact with mesh that we need to fit
-		for(StdList<Face*>::iterator f = meshFaces->begin(); f != meshFaces->end(); f++)
+                for(StdList<BaseTriangle*>::iterator f = meshFaces.begin(); f != meshFaces.end(); f++)
 		{
 			face = *f;
 			face->intersectionTest(ray, res, true);
 
-			if(res.hit && face->normal() * ray.direction > 0)
+                        if(res.hit && face->normal() * ray.direction > 0)
 			{
 				vertex[i] += ray.direction * res.distance;
 				break;
@@ -378,7 +376,7 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 		{
 			IndexSet indexSet;
 
-			Face * closeFace = grid_octree.findClosestTri(testRay, indexSet, this, res);
+                        BaseTriangle * closeFace = grid_octree.findClosestTri(testRay, indexSet, this, res);
 
 			if(closeFace)
 			{
@@ -532,13 +530,13 @@ void Grid::computeSquareValues()
 
 			IndexSet tris;
 
-			Face * closestFace = detailed_octree.findClosestTri(ray, tris, mesh, hitRes);
+                        BaseTriangle * closestFace = detailed_octree.findClosestTri(ray, tris, mesh, hitRes);
 
 			if(closestFace)
 			{
 				// Multi-level
 				for(int l = 0; l < numberOfLevels; l++)
-				{
+                                {
 					stair->getStepDetailed(l)->f(closestFace->index)->intersectionTest(ray, hitRes, true);
 
 					if(hitRes.hit)
@@ -743,12 +741,12 @@ void Grid::drawAsGrid()
 	//return;
 
 	// Octrees
-	/*if(isReady)
-	{
+        //if(isReady)
+        {
 		grid_octree.draw(1,0,0);
 		//base_octree.draw(1,1,1);
 		detailed_octree.draw(0,0,1);
-	}*/
+        }
 
 	SimpleDraw::IdentifyConnectedPoints(testPoints);
 

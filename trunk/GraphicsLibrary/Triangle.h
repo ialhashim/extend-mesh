@@ -5,10 +5,19 @@
 
 #define MODIFIED_TRI 5
 
-class Triangle
+class BaseTriangle
 {
-private:
+public:
+    int index;
+    int flag;
 
+    virtual Vec vec(int i) const = 0;
+    virtual void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false) const = 0;
+    virtual Vec normal() const = 0;
+};
+
+class Triangle : public BaseTriangle
+{
 public:
 	Vec p[3];
 	int index;
@@ -31,7 +40,19 @@ public:
 		p[2] = point3;
 	}
 
-	inline Vec& vec(int i){ return p[i]; }
+        Vec vec(int i) const{return p[i];}
+
+        Vec normal() const
+        {
+            Vec n = (p[1] - p[0]) ^ (p[2] - p[0]);
+
+            double length = n.norm();
+
+            if(length < 1.0E-10)
+                    return n;
+            else
+                    return n /= length;
+        }
 
 	inline float edgeLenY(int e) const;
 
@@ -39,5 +60,5 @@ public:
 
 	Triangle shiftY(float offsetY);
 
-	void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false);
+        void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false) const;
 };

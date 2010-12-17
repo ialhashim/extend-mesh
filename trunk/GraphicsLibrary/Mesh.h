@@ -102,7 +102,7 @@ public:
 	
 	// ACCESS OPERATIONS
 	StdList<Face> * facesList() { return &face; }
-	StdList<Face*> facesListPointers();
+        StdList<BaseTriangle*> facesListPointers();
 	void removeAllFaces(const StdSet<int> & facesIndices);
 	HashMap<int, Vec> getPoints();
 	

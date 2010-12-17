@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include "BoundingBox.h"
+#include "Triangle.h"
 #include "SimpleDraw.h"
 
 typedef std::set<int> IndexSet;
@@ -15,20 +16,19 @@ typedef IndexSet::iterator IndexSetIter;
 #include <stack>
 using namespace std;
 
-template <typename FaceType>
-class OctreeBase
+class Octree
 {
 private:
-	Vector<OctreeBase> children;
-	Vector<FaceType> triangleData;
+        Vector<Octree> children;
+        Vector<BaseTriangle*> triangleData;
 
 public:
-	BoundingBox<FaceType> boundingBox;
+        BoundingBox boundingBox;
 	int trianglePerNode;
 
-	OctreeBase(){trianglePerNode = -1;}
+        Octree(){trianglePerNode = -1;}
 
-	OctreeBase(const Vector<int> & trisIndex, Mesh * mesh, int triPerNode) 
+        Octree(const Vector<int> & trisIndex, Mesh * mesh, int triPerNode)
 	{
 		for(Vector<int>::const_iterator index = trisIndex.begin(); index != trisIndex.end(); index++)
 		{
@@ -38,9 +38,9 @@ public:
 		init(triPerNode);
 	}
 
-	OctreeBase(const StdList<FaceType>& tris, int triPerNode)
+        Octree(const StdList<BaseTriangle*>& tris, int triPerNode)
 	{
-		for(typename StdList<FaceType>::const_iterator f = tris.begin(); f != tris.end(); f++)
+                for(StdList<BaseTriangle*>::const_iterator f = tris.begin(); f != tris.end(); f++)
 		{
 			this->triangleData.push_back(*f);
 		}
@@ -52,30 +52,30 @@ public:
 	{
 		this->trianglePerNode = triPerNode;
 
-		BoundingBox<FaceType> bb;
+                BoundingBox bb;
 		bb.computeFromTris(triangleData);
 
 		//Transform and scale to node's coordinates
 		double largeSize = Max(bb.xExtent, Max(bb.yExtent, bb.zExtent));
 
-		this->boundingBox = BoundingBox<FaceType>(bb.center, largeSize, largeSize, largeSize);
+                this->boundingBox = BoundingBox(bb.center, largeSize, largeSize, largeSize);
 	}
 
-	void initBuild(const StdList<FaceType>& tris, int triPerNode )
+        void initBuild(const StdList<BaseTriangle*>& tris, int triPerNode )
 	{
 		// add triangles involved to "triangleData"
 		this->triangleData = LIST_TO_VECTOR(tris);
 		this->trianglePerNode = triPerNode;
 
 		// Create a big box
-		BoundingBox<FaceType> bb;
+                BoundingBox bb;
 		bb.computeFromTris(triangleData);
 
 		// Transform and scale to node's coordinates
 		double largeSize = Max(bb.xExtent, Max(bb.yExtent, bb.zExtent));
 
 		// Define our bounding box
-		this->boundingBox = BoundingBox<FaceType>(bb.center, largeSize, largeSize, largeSize);
+                this->boundingBox = BoundingBox(bb.center, largeSize, largeSize, largeSize);
 
 		// Build the tree
 		this->build();
@@ -91,14 +91,27 @@ public:
 		center.y = boundingBox.center.y + (extent * y);
 		center.z = boundingBox.center.z + (extent * z);
 
-		BoundingBox<FaceType> bb(center, extent, extent, extent);
+                BoundingBox bb(center, extent, extent, extent);
 
 		// Add child
-		children.push_back(OctreeBase<FaceType>());
-		children.back().boundingBox = bb;
-		children.back().trianglePerNode = this->trianglePerNode;
-		children.back().triangleData = collectTriangles(bb);
-		children.back().build(depth + 1); // build it
+                children.push_back(Octree());
+                Octree * child = &children.back();
+
+                child->boundingBox = bb;
+                child->trianglePerNode = this->trianglePerNode;
+
+                // Collect triangles inside child's bounding box
+                for(Vector<BaseTriangle*>::iterator it = this->triangleData.begin(); it != this->triangleData.end(); it++)
+                {
+                    BaseTriangle* face = *it;
+
+                    if( bb.containsTriangle(face->vec(0), face->vec(1), face->vec(2)) )
+                    {
+                        child->triangleData.push_back(face);
+                    }
+                }
+
+                child->build(depth + 1); // build it
 	}
 
 	void build(int depth = 0)
@@ -120,12 +133,12 @@ public:
 		}
 	}
 
-	Vector<FaceType> getTriangleData()
+        Vector<BaseTriangle*> getTriangleData()
 	{
 		return triangleData;
 	}
 
-	OctreeBase( int triPerNode, const BoundingBox<FaceType>& bb, const Vector<FaceType>& tris )
+        Octree( int triPerNode, const BoundingBox& bb, const Vector<BaseTriangle*>& tris )
 	{
 		this->boundingBox = bb;
 		this->trianglePerNode = triPerNode;
@@ -136,23 +149,8 @@ public:
 	{
 		SimpleDraw::DrawBox(boundingBox.center, boundingBox.xExtent, boundingBox.yExtent, boundingBox.zExtent,r,g,b);
 
-		for (typename Vector<OctreeBase>::iterator child = children.begin();  child != children.end(); child++)
+                for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
 			child->draw(r,g,b);
-	}
-
-	Vector<FaceType> collectTriangles(const BoundingBox<FaceType>& bb) 
-	{
-		Vector<FaceType> triList;
-
-		for(typename Vector<FaceType>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
-		{
-			FaceType f = *face;
-
-			if( bb.containsTriangle(f->vec(0), f->vec(1), f->vec(2)) )
-				triList.push_back(f);
-		}
-
-		return triList;
 	}
 
 	bool intersectHit(IndexSet& tris) 
@@ -160,7 +158,7 @@ public:
 		if(this->children.size() > 0)
 			return false;
 
-		for(typename Vector<FaceType>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
+                for(Vector<BaseTriangle*>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
 		{
 			tris.insert( (*face)->index );
 		}
@@ -183,7 +181,7 @@ public:
 		if (intersectHit(tris))
 			return;
 
-		for (typename Vector<OctreeBase>::iterator child = children.begin();  child != children.end(); child++)
+                for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
 		{
 			if (child->boundingBox.contains(point))
 				child->intersectRecursivePoint(point, tris);
@@ -205,7 +203,7 @@ public:
 		if (intersectHit(tris))
 			return;
 
-		for (typename Vector<OctreeBase>::iterator child = children.begin();  child != children.end(); child++)
+                for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
 		{
 			if (child->boundingBox.intersects(ray))
 				child->intersectRecursiveRay(ray, tris);
@@ -227,7 +225,7 @@ public:
 		if (intersectHit(tris))
 			return;
 
-		for (typename Vector<OctreeBase>::iterator child = children.begin();  child != children.end(); child++)
+                for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
 		{
 			if (child->boundingBox.intersectsSphere(sphere_center, radius))
 				child->intersectRecursiveSphere(sphere_center, radius, tris);
@@ -252,7 +250,7 @@ public:
 
 	void intersectRayBoth(const Ray& ray, IndexSet & tris) 
 	{
-		stack<OctreeBase*> trees;
+                stack<Octree*> trees;
 
 		Ray inverseRay(ray.inverse());
 
@@ -263,11 +261,11 @@ public:
 
 		while(!trees.empty())
 		{
-			OctreeBase * t = trees.top(); trees.pop();
+                        Octree * t = trees.top(); trees.pop();
 
 			if (!t->intersectHit(tris))
 			{
-				for (typename Vector<OctreeBase<FaceType> >::iterator child = t->children.begin(); child != t->children.end(); child++)
+                                for (Vector<Octree>::iterator child = t->children.begin(); child != t->children.end(); child++)
 				{
 					if (child->boundingBox.intersects(ray) || child->boundingBox.intersects(inverseRay))
 						trees.push(&(*child));
@@ -276,10 +274,10 @@ public:
 		}
 	}
 
-	FaceType findClosestTri(const Ray & ray, IndexSet & tris, Mesh * mesh, HitResult & hitRes)
+        BaseTriangle* findClosestTri(const Ray & ray, IndexSet & tris, Mesh * mesh, HitResult & hitRes)
 	{
 		double minDist = DBL_MAX;
-		FaceType closestFace = NULL, curr_FaceType = NULL;
+                BaseTriangle *closestFace = NULL, *curr_FaceType = NULL;
 
 		double u = 0.0, v = 0.0;
 		double actualMinDist = 0;
@@ -330,9 +328,9 @@ public:
 			return false;
 
 		// Do actual intersection test
-		for(typename Vector<FaceType>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
+                for(Vector<BaseTriangle*>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
 		{
-			FaceType f = *face;
+                        BaseTriangle* f = *face;
 
 			f->intersectionTest(ray, hitRes, true);
 
@@ -345,7 +343,7 @@ public:
 
 	void testIntersectRayBoth(const Ray& ray, HitResult & hitRes) 
 	{
-		stack<OctreeBase*> trees;
+                stack<Octree*> trees;
 
 		Ray inverseRay = ray.inverse();
 
@@ -354,7 +352,7 @@ public:
 
 		while(!trees.empty())
 		{
-			OctreeBase * t = trees.top(); trees.pop();
+                        Octree * t = trees.top(); trees.pop();
 
 			if (t->testIntersectHit(ray, hitRes))
 			{
@@ -362,7 +360,7 @@ public:
 			}
 			else
 			{
-				for (typename Vector<OctreeBase<FaceType> >::iterator child = t->children.begin(); child != t->children.end(); child++)
+                                for (Vector<Octree>::iterator child = t->children.begin(); child != t->children.end(); child++)
 				{
 					if (child->boundingBox.intersects(ray) || child->boundingBox.intersects(inverseRay))
 						trees.push(&(*child));
@@ -372,5 +370,3 @@ public:
 	}
 };
 
-typedef OctreeBase<Face*> Octree;
-typedef OctreeBase<Triangle*> OctreeTriangles;
