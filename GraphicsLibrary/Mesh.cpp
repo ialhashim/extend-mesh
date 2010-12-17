@@ -1665,13 +1665,13 @@ Face * Mesh::intersectRay( const Ray& ray, HitResult & hitRes )
 	return closestFace;
 }
 
-StdList<Face*> Mesh::facesListPointers()
+StdList<BaseTriangle*> Mesh::facesListPointers()
 {
-	StdList<Face*> result;
+        StdList<BaseTriangle*> result;
 
 	for(StdList<Face>::iterator f = face.begin(); f != face.end(); f++)
 	{
-		result.push_back(&(*f));
+                result.push_back((BaseTriangle*)&(*f));
 	}
 
 	return result;

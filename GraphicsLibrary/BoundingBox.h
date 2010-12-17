@@ -13,7 +13,6 @@
 *
 * @author Joshua Slack
 */
-template <typename FaceType>
 class BoundingBox
 {
 
@@ -50,7 +49,7 @@ public:
 		return *this;
 	}
 
-        void computeFromTris(const Vector<FaceType>& tris)
+        void computeFromTris(const Vector<BaseTriangle*>& tris)
 	{
 		Vec vmin (FLT_MAX, FLT_MAX, FLT_MAX);
 		Vec vmax (FLT_MIN, FLT_MIN, FLT_MIN);
@@ -205,54 +204,59 @@ public:
 
         bool containsTriangle(const Vec& tv1, const Vec& tv2, const Vec& tv3) const
         {
-                Vec v0, v1, v2;
-                double min,max,d,p0,p1,p2,rad,fex,fey,fez;
-                Vec normal,e0,e1,e2;
+                BoundingBox b;
+                b.computeFromTri(tv1, tv2, tv3);
 
-                Vec boxhalfsize(xExtent, yExtent, zExtent);
-                int X = 0, Y = 1, Z = 2;
+                return intersectsBoundingBox(b);
 
-                v0 = tv1 - center;	v1 = tv2 - center;	v2 = tv3 - center;
-                e0 = v1 - v0;		e1 = v2 - v1;		e2 = v0 - v2;
+//                int X = 0, Y = 1, Z = 2;
+//                Vec v0, v1, v2;
+//                Vec normal,e0,e1,e2;
+//                double min=0,max=0,d=0,p0=0,p1=0,p2=0,rad=0,fex=0,fey=0,fez=0;
 
-                /* Bullet 3:  */
-                /*  test the 9 tests first (this was faster) */
-                fex = abs(e0[X]); fey = abs(e0[Y]); fez = abs(e0[Z]);
-                AXISTEST_X01(e0[Z], e0[Y], fez, fey);
-                AXISTEST_Y02(e0[Z], e0[X], fez, fex);
-                AXISTEST_Z12(e0[Y], e0[X], fey, fex);
+//                Vec boxhalfsize(xExtent, yExtent, zExtent);
 
-                fex = abs(e1[X]); fey = abs(e1[Y]); fez = abs(e1[Z]);
-                AXISTEST_X01(e1[Z], e1[Y], fez, fey);
-                AXISTEST_Y02(e1[Z], e1[X], fez, fex);
-                AXISTEST_Z0(e1[Y], e1[X], fey, fex);
+//                v0 = tv1 - center;	v1 = tv2 - center;	v2 = tv3 - center;
+//                e0 = v1 - v0;		e1 = v2 - v1;		e2 = v0 - v2;
 
-                fex = abs(e2[X]); fey = abs(e2[Y]); fez = abs(e2[Z]);
-                AXISTEST_X2(e2[Z], e2[Y], fez, fey);
-                AXISTEST_Y1(e2[Z], e2[X], fez, fex);
-                AXISTEST_Z12(e2[Y], e2[X], fey, fex);
+//                /* Bullet 3:  */
+//                /*  test the 9 tests first (this was faster) */
+//                fex = abs(e0[X]); fey = abs(e0[Y]); fez = abs(e0[Z]);
+//                AXISTEST_X01(e0[Z], e0[Y], fez, fey);
+//                AXISTEST_Y02(e0[Z], e0[X], fez, fex);
+//                AXISTEST_Z12(e0[Y], e0[X], fey, fex);
 
-                /* Bullet 1: */
-                FINDMINMAX(v0.x,v1.x,v2.x, min, max);	/* test in X-direction */
-                if(min > boxhalfsize.x || max < -boxhalfsize.x) return false;
+//                fex = abs(e1[X]); fey = abs(e1[Y]); fez = abs(e1[Z]);
+//                AXISTEST_X01(e1[Z], e1[Y], fez, fey);
+//                AXISTEST_Y02(e1[Z], e1[X], fez, fex);
+//                AXISTEST_Z0(e1[Y], e1[X], fey, fex);
 
-                FINDMINMAX(v0.y,v1.y,v2.y, min, max);	/* test in Y-direction */
-                if(min > boxhalfsize.y || max < -boxhalfsize.y) return false;
+//                fex = abs(e2[X]); fey = abs(e2[Y]); fez = abs(e2[Z]);
+//                AXISTEST_X2(e2[Z], e2[Y], fez, fey);
+//                AXISTEST_Y1(e2[Z], e2[X], fez, fex);
+//                AXISTEST_Z12(e2[Y], e2[X], fey, fex);
 
-                FINDMINMAX(v0.z,v1.z,v2.z, min, max); 	/* test in Z-direction */
-                if(min > boxhalfsize.z || max < -boxhalfsize.z) return false;
+//                /* Bullet 1: */
+//                FINDMINMAX(v0.x,v1.x,v2.x, min, max);	/* test in X-direction */
+//                if(min > boxhalfsize.x || max < -boxhalfsize.x) return false;
 
-                /*  test if the box intersects the plane of the triangle */
-                normal = e0 ^ e1;
-                d = -(v0 * normal);  	/* plane eq: normal.x+d=0 */
+//                FINDMINMAX(v0.y,v1.y,v2.y, min, max);	/* test in Y-direction */
+//                if(min > boxhalfsize.y || max < -boxhalfsize.y) return false;
 
-                if(!planeBoxOverlap(normal, d, boxhalfsize))
-                        return false;
+//                FINDMINMAX(v0.z,v1.z,v2.z, min, max); 	/* test in Z-direction */
+//                if(min > boxhalfsize.z || max < -boxhalfsize.z) return false;
 
-                return true;
+//                /*  test if the box intersects the plane of the triangle */
+//                normal = e0 ^ e1;
+//                d = -(v0 * normal);  	/* plane eq: normal.x+d=0 */
+
+//                if(!planeBoxOverlap(normal, d, boxhalfsize))
+//                        return false;
+
+//                return true;
         }
 
-	inline bool intersectsBoundingBox(const BoundingBox& bb) 
+        inline bool intersectsBoundingBox(const BoundingBox& bb) const
 	{
         if (center.x + xExtent < bb.center.x - bb.xExtent || center.x - xExtent > bb.center.x + bb.xExtent)
             return false;

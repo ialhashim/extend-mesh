@@ -74,7 +74,7 @@ bool Plane::IsInTri(const Vec& p, const Vec &a, const Vec &b, const Vec &c) cons
    Note: the following has been written as a "stand along" piece of
    code that will work but is far from efficient....
 */
-int Plane::ContourFacet( Face * f, Vec & p1, Vec & p2 )
+int Plane::ContourFacet( BaseTriangle * f, Vec & p1, Vec & p2 )
 {
    double A,B,C,D;
    double side[3];

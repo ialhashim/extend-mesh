@@ -119,7 +119,7 @@ public:
         int LineIntersect(const Line& l, Vec & result);
 	int LineIntersect(const Vec& start, const Vec& end, const Vec& pointOnPlane, Vec & result);
 
-	int ContourFacet(Face * f, Vec & p1, Vec & p2);
+        int ContourFacet(BaseTriangle * f, Vec & p1, Vec & p2);
 
 	void draw(double extent = 0.25);
 

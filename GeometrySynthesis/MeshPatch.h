@@ -48,8 +48,8 @@ public:
 
 	// For sampling
         Vector<Triangle> parameterTriangles;
-        OctreeTriangles parameterOctree;
-        StdList<Triangle*> parameterTriPointers();
+        Octree parameterOctree;
+        StdList<BaseTriangle*> parameterTriPointers();
 
         // Visulaize paramter triangles
         void drawparameterTris();

@@ -3,7 +3,7 @@
 
 #include "Vertex.h"
 #include "Edge.h"
-#include "Intersection.h"
+#include "Triangle.h"
 
 enum FaceFlag{
     FF_CLEAR =  -1,
@@ -16,7 +16,7 @@ struct VertexAngle{
 	VertexAngle(int vertIndex, double angleAt) : index(vertIndex), angle(angleAt){};
 };
 
-class Face
+class Face : public BaseTriangle
 {
 public:
 	Vertex * v[3];
@@ -47,10 +47,10 @@ public:
 	void unsetVertexByIndex(int vi);
 	void unset();
 
-	Vec vec(const int i) const;
+        Vec vec(int i) const;
 
 	// COMPUTE NORMAL
-	Vec normal();
+        Vec normal() const;
 
 	// COMPUTE CENTER & FROM Barycentrics
 	Vec center();
@@ -78,7 +78,7 @@ public:
 	Pair<Vec, Vec> spanAt(int a);
 
 	// INTERSECTION FUNCTIONS
-	void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false);
+        void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false) const;
 	void intersectionTest2(const Ray & ray, HitResult & res);
 
 	double pointToPointsDistance(Vec & p);

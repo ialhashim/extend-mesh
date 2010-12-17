@@ -26,7 +26,7 @@ private:
 	double length;
 
 	SmoothStairway * stair;
-	StdList<Face*> * meshFaces;
+        StdList<BaseTriangle*> meshFaces;
 	Vector<int> selectedFaces;
 	HashMap<int, Vec> originalMeshNormals;
 
@@ -53,8 +53,8 @@ private:
 
 public:
 	Grid(Vector<Vec> & src_spine, double radius, double Length, int sizeOfGrid,
-		SmoothStairway * Stair, StdList<Face*> & MeshFaces, int rotateLeft, int rotateRight);
-	Grid(){widthCount = lengthCount = -1; segmentLength = 0.0f;};
+                SmoothStairway * Stair, const StdList<Face*>& MeshFaces, int rotateLeft, int rotateRight);
+        Grid(){widthCount = lengthCount = -1; segmentLength = 0.0f;}
 
 	// PROPERTIES
 	int widthCount;
@@ -99,7 +99,7 @@ public:
 	// MODIFIERS
 	void FitNothing();
 	void FitCylinder();
-	void FitCrossSections(Mesh * m, bool useEntireMesh = false);
+        void FitCrossSections();
 
 	// Rotation experiment
 	int rotateLeft, rotateRight;

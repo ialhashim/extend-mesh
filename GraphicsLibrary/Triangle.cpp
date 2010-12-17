@@ -63,7 +63,7 @@ Triangle Triangle::shiftY( float offsetY )
 	return temp;
 }
 
-void Triangle::intersectionTest(const Ray & ray, HitResult & res, bool allowBack)
+void Triangle::intersectionTest(const Ray & ray, HitResult & res, bool allowBack) const
 {
 	res.hit = false;
         res.distance = DBL_MAX;

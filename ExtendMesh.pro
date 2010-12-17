@@ -38,7 +38,7 @@ win32{
 }
 
 CONFIG(debug, debug|release){
-    QMAKE_CXXFLAGS+= -ggdb -O0 -fopenmp
+    QMAKE_CXXFLAGS+= -ggdb -g3 -O0 -fopenmp
     QMAKE_LFLAGS *= -fopenmp
     LIBS += -lGLEW -lGLU -lGL -lQGLViewer -lsparse
 }

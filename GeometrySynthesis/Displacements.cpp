@@ -69,13 +69,13 @@ void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate,
 	switch(fitMethod)
 	{
 	case 1:	// Fit using cross sections
-		grid.FitCrossSections( stair.mostBaseMesh() );	break;
+                grid.FitCrossSections();	break;
 
 	case 2:	// Fit cylinder
-		grid.FitCylinder( );								break;
+                grid.FitCylinder( );		break;
 
 	default: 
-		grid.FitNothing( );
+                grid.FitNothing( );             break;
 	}
 
         printf(".Fit time (%d ms).", (int)fitTimer.elapsed());

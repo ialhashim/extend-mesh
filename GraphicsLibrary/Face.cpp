@@ -42,12 +42,12 @@ Face& Face::operator= (const Face& from)
 	return *this;
 }
 
-Vec Face::vec(const int i) const
+Vec Face::vec(int i) const
 {
 	return *v[i];
 }
 
-Vec Face::normal()
+Vec Face::normal() const
 {
 	Vec n = (*v[1] - *v[0]) ^ (*v[2] - *v[0]);
 
@@ -382,7 +382,7 @@ StdString Face::toString()
 	return buff;
 }
 
-void Face::intersectionTest(const Ray & ray, HitResult & res, bool allowBack)
+void Face::intersectionTest(const Ray & ray, HitResult & res, bool allowBack) const
 {
 	res.hit = false;
 	res.distance = FLT_MAX;
