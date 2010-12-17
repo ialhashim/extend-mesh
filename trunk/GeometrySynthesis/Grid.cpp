@@ -743,9 +743,9 @@ void Grid::drawAsGrid()
 	// Octrees
 	//if(isReady)
 	{
-		grid_octree.draw(1,0,0);
+		//grid_octree.draw(1,0,0);
 		//base_octree.draw(1,1,1);
-		detailed_octree.draw(0,0,1);
+		//detailed_octree.draw(0,0,1);
 	}
 
 	SimpleDraw::IdentifyConnectedPoints(testPoints);

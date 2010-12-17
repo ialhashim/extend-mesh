@@ -31,11 +31,11 @@ Blender::Blender( GridMesh * src_gm )
 
 void Blender::FindSeamTimes()
 {
-        for(int i = 0; i < (int)seams.size(); i++)
+	for(int i = 0; i < (int)seams.size(); i++)
 	{
 		float start = FLT_MAX;
 		float end = FLT_MIN;
-		
+
 		// Start time
 		foreach(const int vi, seams[i].boundryA)
 		{
@@ -56,7 +56,7 @@ void Blender::Sample()
 {
 	int resolution = 25;
 
-        for(int i = 0; i < (int)seams.size(); i++)
+	for(int i = 0; i < (int)seams.size(); i++)
 	{
 		Vector<Plane> csPlane;
 
@@ -86,7 +86,7 @@ void Blender::Sample()
 		csPlane[0].getTangents(upVec,bVec);
 
 		// Find cross section samples per patch
-                for(int v = 0; v < (int)csPlane.size(); v++)
+		for(int v = 0; v < (int)csPlane.size(); v++)
 		{
 			bool hasClosedPolyA = false;
 
@@ -131,7 +131,7 @@ void Blender::Sample()
 
 					curve_samples.back().push_back(
 						CurveSample( ExtendedPolygon(poly[poly.size() - 2], c1, 0, csPlane[v].center), 
-										ExtendedPolygon(poly.back(), c2, 0, csPlane[v].center))	);
+						ExtendedPolygon(poly.back(), c2, 0, csPlane[v].center))	);
 				}
 			}
 		}
@@ -140,8 +140,8 @@ void Blender::Sample()
 		float w = 1.0f;
 		int numSides = 0;
 		Vector<CurveSample> * curves = &curve_samples.back();
-		
-                for(int ci = 0; ci < (int)curves->size(); ci++)
+
+		for(int ci = 0; ci < (int)curves->size(); ci++)
 		{
 			w = (float)ci / (curves->size() - 1);
 
@@ -151,13 +151,13 @@ void Blender::Sample()
 			curveSample->A.weight = 1.0f - w;
 			curveSample->B.weight = w;
 
-                        numSides = Max(numSides, Max((int)curveSample->A.allPoints.size(), (int)curveSample->B.allPoints.size()));
+			numSides = Max(numSides, Max((int)curveSample->A.allPoints.size(), (int)curveSample->B.allPoints.size()));
 		}
 
 		numSides *= 1;
 
 		// blended curves
-                for(int ci = 0; ci < (int)curves->size(); ci++)
+		for(int ci = 0; ci < (int)curves->size(); ci++)
 		{
 			CurveSample * curveSample = &curves->at(ci);
 
@@ -170,10 +170,9 @@ void Blender::Reconstruct()
 {
 	mainWindow->ui.viewer->makeCurrent();
 
-        for(int si = 0; si < (int)seams.size(); si++)
+	for(int si = 0; si < (int)seams.size(); si++)
 	{
-		int lengthCount = blended_curves[si].size();
-
+		int lengthCount = blended_curves[si].size(); if(lengthCount < 1) continue;
 		int widthCount = blended_curves[si].front().closedPoints.size();
 
 		reconPatch.push_back(Mesh(lengthCount * widthCount));
@@ -236,7 +235,7 @@ void Blender::Export()
 
 	for(int si = 0; si < n; si++)
 	{
-		int lengthCount = blended_curves[si].size();
+		int lengthCount = blended_curves[si].size(); if(lengthCount < 1) continue;
 		int widthCount = blended_curves[si].front().closedPoints.size();
 
 		for(int v = 0; v < lengthCount; v++)
@@ -298,12 +297,12 @@ void Blender::draw()
 
 	/*for(int i = 0; i < seams.size(); i++)
 	{
-		Seam * s = &seams[i];
+	Seam * s = &seams[i];
 	}*/
 
-        for(int si = 0; si < (int)seams.size(); si++)
+	for(int si = 0; si < (int)seams.size(); si++)
 	{
-                for(int c = 0; c < (int)curve_samples[si].size(); c++)
+		for(int c = 0; c < (int)curve_samples[si].size(); c++)
 		{
 			//curve_samples[si][c].A.drawColored();
 			//curve_samples[si][c].B.drawColored();
@@ -312,7 +311,7 @@ void Blender::draw()
 		}
 	}
 
-        for(int si = 0; si < (int)reconPatch.size(); si++)
+	for(int si = 0; si < (int)reconPatch.size(); si++)
 	{
 		reconPatch[si].draw();
 	}

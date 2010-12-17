@@ -23,15 +23,15 @@ CrossSection::CrossSection(int v, Grid * grid, const Color4 & newColor)
 
 		sumPoints += p;
 	}
-	
+
 	//center = sumPoints / grid->widthCount;
 	center = grid->spinePoints[v];
 
 	// Subtract center
-        for(int i = 0; i < (int)point.size(); i++)
+	for(int i = 0; i < (int)point.size(); i++)
 		point[i] -= center;
 
-	normal = (point[0] ^ point[1]).unit();
+	findNormal3D(point, normal);
 
 	color = newColor;
 }
@@ -51,7 +51,7 @@ CrossSection::CrossSection(float t, const CrossSection & c1, const CrossSection 
 		CrossSection c2temp = c2;
 		c2temp.rotate( Rotation (c2.normal, c1.normal) );
 
-                for(int i = 0; i < (int)c1.point.size(); i++)
+		for(int i = 0; i < (int)c1.point.size(); i++)
 			this->point.push_back(Vertex::interpolateVec(t, c1.point[i], c2temp.point[i]));
 	}
 
@@ -75,7 +75,7 @@ CrossSection::CrossSection(float radius, int numSides,const Vec & fromCenter, co
 
 	this->point = Circle(radius, numSides).getPoints();
 
-        this->color = newColor;
+	this->color = newColor;
 
 	translate(fromCenter);
 	align(fromNormal);
@@ -92,7 +92,7 @@ CrossSection::CrossSection(const CrossSection & from)
 
 CrossSection& CrossSection::operator= (const CrossSection & from)
 {
-    if (this != &from)
+	if (this != &from)
 	{
 		this->center = from.center;
 		this->normal = from.normal;
@@ -126,11 +126,11 @@ void CrossSection::translateBy(const Vec & delta)
 
 void CrossSection::rotate(const Rotation & q)
 {
-        for(unsigned int i = 0; i < point.size(); i++)
-        {
-                Vec old_p = point[i];
-                point[i] = q.rotate(old_p);
-        }
+	for(unsigned int i = 0; i < point.size(); i++)
+	{
+		Vec old_p = point[i];
+		point[i] = q.rotate(old_p);
+	}
 
 	normal = q.rotate(normal);
 }
@@ -276,7 +276,7 @@ void CrossSection::draw(float lineWidth)
 	glColor4ubv(color);
 
 	glBegin(GL_LINE_STRIP);
-        for(int i = 0; i <= (int)point.size(); i++)
+	for(int i = 0; i <= (int)point.size(); i++)
 		glVertex3fv(point[i % point.size()] + center);
 	glEnd();
 
@@ -284,17 +284,17 @@ void CrossSection::draw(float lineWidth)
 	glPointSize(6);
 	glColor3f(1,0,0);
 	glBegin(GL_POINTS);
-		glVertex3fv(center);
+	glVertex3fv(center);
 	glEnd();
 
 	// Draw normal
 	glLineWidth(2.0f);
 	glBegin(GL_LINES);
-		glColor4f(0.4f,0.6f,0.4f, 0.25f);
-		glVertex3fv(center);
+	glColor4f(0.4f,0.6f,0.4f, 0.25f);
+	glVertex3fv(center);
 
-		glColor4f(0.85f,1,0.85f, 1.0f);
-		glVertex3fv(center + (normal * 0.025f));
+	glColor4f(0.85f,1,0.85f, 1.0f);
+	glVertex3fv(center + (normal * 0.025f));
 	glEnd();
 
 	glDisable(GL_BLEND);

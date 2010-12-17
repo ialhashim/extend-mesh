@@ -20,7 +20,7 @@ void Seam::FindSeams(GridMesh * gm, Mesh* & M, Vector<int> & comulativeNumV, Vec
 
 	comulativeNumV.push_back(0); // no offset for first mesh A
 
-        for(int p = 0; p < (int)tri_patch->size() - 1; p++)
+	for(int p = 0; p < (int)tri_patch->size() - 1; p++)
 	{
 		MeshPatch * patch1 = &tri_patch->at(p);
 		MeshPatch * patch2 = &tri_patch->at(p+1);
@@ -41,12 +41,12 @@ void Seam::FindSeams(GridMesh * gm, Mesh* & M, Vector<int> & comulativeNumV, Vec
 				// Middle face should be good with high probability
 				int startFace = B->numberOfFaces() * 0.5;
 
-                                Vector<int> subFaces = SET_TO_VECTOR(B->getManifoldFaces(startFace));
-                                Mesh * cleaned = B->CloneSubMesh(subFaces);
+				Vector<int> subFaces = SET_TO_VECTOR(B->getManifoldFaces(startFace));
+				Mesh * cleaned = B->CloneSubMesh(subFaces);
 
 				bool isLastPart = false;
 
-                                if(p == (int)tri_patch->size() - 2)
+				if(p == (int)tri_patch->size() - 2)
 					isLastPart = true;
 
 				patch2->replaceMesh(cleaned, isLastPart);
@@ -106,7 +106,7 @@ void Seam::FindSeams(GridMesh * gm, Mesh* & M, Vector<int> & comulativeNumV, Vec
 
 	Vector<int> bdryA, bdryB;
 
-        for(int i = 0; i < (int)closestBoundryA.size(); i++)
+	for(int i = 0; i < (int)closestBoundryA.size(); i++)
 	{
 		int closestA = closestBoundryA[i];
 		int closestB = closestBoundryB[i];
@@ -135,8 +135,8 @@ void Seam::LineupSeams(Vector<int>::iterator & bdryA, Vector<int>::iterator & bd
 	for(Vector<int>::iterator it = bdryB; it != boundryB.end(); it++) pointsB.push_back(M->vec(*it));
 
 	Vec seamNormalA,seamNormalB;
-        findNormal3D(pointsA, seamNormalA);
-        findNormal3D(pointsB, seamNormalB);
+	findNormal3D(pointsA, seamNormalA);
+	findNormal3D(pointsB, seamNormalB);
 
 	// Reverse direction of boundary 'B'
 	if(seamNormalA * seamNormalB < 0)
