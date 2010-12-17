@@ -42,10 +42,12 @@ struct Ray
 	Vec direction;
 	int index;
 
-	Ray(const Vec & Origin = Vec(), const Vec & Direction = Vec(), int Index = -1) : 
-		origin(Origin), direction(Direction), index(Index){}
+	Ray(const Vec & Origin = Vec(), const Vec & Direction = Vec(), int Index = -1) : origin(Origin), index(Index)
+	{
+		direction = Direction.unit();
+	}
 
-	inline Ray inverse() const {	return Ray(origin, -direction);	} 
+	inline Ray inverse() const { return Ray(origin, -direction); } 
 
 	Ray& operator= (const Ray& other)
 	{

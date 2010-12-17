@@ -8,12 +8,12 @@ Displacements::Displacements(Mesh * source, Skeleton * srcSkeleton, int numberSt
 	this->sourceMesh = source;
 	this->skeleton = srcSkeleton;
 
-        CreateTimer(timer);
+	CreateTimer(timer);
 
 	// Create smooth stairway structure
 	stair = SmoothStairway(source, numberSteps, numIteration, smoothStepSize, isVolumePreserve);
 
-        printf("\n\n\nSmooth stairway time (%d ms).\n", (int)timer.elapsed());
+	printf("\n\n\nSmooth stairway time (%d ms).\n", (int)timer.elapsed());
 
 	this->isVisible = true;
 	this->isUserFriendly = false;
@@ -24,7 +24,7 @@ Displacements::Displacements(Mesh * source, Skeleton * srcSkeleton, int numberSt
 
 void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate, int rRotate)
 {
-        CreateTimer(allTimer);
+	CreateTimer(allTimer);
 	printf("\nComputing field for selection..\n");
 
 	// Get faces and points of selected part
@@ -57,38 +57,38 @@ void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate,
 	if(radius <= 0.0f)	
 		radius = stair.mostDetailedMesh()->radius * 0.1; // just in case...
 
-        CreateTimer(gridTimer);
+	CreateTimer(gridTimer);
 
 	// CREATE GRID
 	grid = Grid(skeletonPoints, radius, gridLength, gridSquareSize, &stair, meshFaces,lRotate, rRotate);
 
-        printf(".Grid time (%d ms).", (int)gridTimer.elapsed());
-        CreateTimer(fitTimer);
+	printf(".Grid time (%d ms).", (int)gridTimer.elapsed());
+	CreateTimer(fitTimer);
 
 	// FIT GRID
 	switch(fitMethod)
 	{
 	case 1:	// Fit using cross sections
-                grid.FitCrossSections();	break;
+		grid.FitCrossSections();	break;
 
 	case 2:	// Fit cylinder
-                grid.FitCylinder( );		break;
+		grid.FitCylinder( );		break;
 
 	default: 
-                grid.FitNothing( );             break;
+		grid.FitNothing( );             break;
 	}
 
-        printf(".Fit time (%d ms).", (int)fitTimer.elapsed());
-        CreateTimer(gridifyTimer);
+	printf(".Fit time (%d ms).", (int)fitTimer.elapsed());
+	CreateTimer(gridifyTimer);
 
 	// Assign detailed mesh points into cylindrical grid cells
-        grid.Gridify( selectedFaces );
-
+	grid.Gridify( selectedFaces );
+ 
 	isReady = true;
 
-        printf(".total Gridify time = %d ms\n", (int)gridifyTimer.elapsed());
+	printf(".total Gridify time = %d ms\n", (int)gridifyTimer.elapsed());
 
-        printf("\n\nField time = %d ms\n=======\n", (int)allTimer.elapsed());
+	printf("\n\nField time = %d ms\n=======\n", (int)allTimer.elapsed());
 }
 
 Grid * Displacements::GetGrid()
@@ -110,17 +110,17 @@ void Displacements::draw()
 	{
 		/*if(isUserFriendly)
 		{
-			stair->mostDetailedMesh()->draw();
+		stair->mostDetailedMesh()->draw();
 		}
 		else*/
 		{
-                   // if(grid.isReady)
-                    {
-			grid.drawAsGrid();
+			// if(grid.isReady)
+			{
+				grid.drawAsGrid();
 
-			grid.draw();
-                    }
-                }
+				grid.draw();
+			}
+		}
 	}
 }
 

@@ -8,20 +8,19 @@
 class BaseTriangle
 {
 public:
-    int index;
-    int flag;
+	int index;
+	int flag;
 
-    virtual Vec vec(int i) const = 0;
-    virtual void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false) const = 0;
-    virtual Vec normal() const = 0;
+	virtual Vec vec(int i) const = 0;
+	virtual Vec normal() const = 0;
+
+	virtual void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false) const = 0;
 };
 
 class Triangle : public BaseTriangle
 {
 public:
 	Vec p[3];
-	int index;
-	int flag;
 
 	Triangle()
 	{
@@ -32,27 +31,29 @@ public:
 		index = flag = -1;
 	}
 
-	Triangle(const Vec& point1, const Vec& point2, const Vec& point3, 
-		int tri_index = -1, int tri_flag = -1) : index(tri_index), flag(tri_flag)
+	Triangle(const Vec& point1, const Vec& point2, const Vec& point3, int tri_index = -1, int tri_flag = -1)
 	{
 		p[0] = point1;
 		p[1] = point2;
 		p[2] = point3;
+
+		index = tri_index;
+		flag = tri_flag;
 	}
 
-        Vec vec(int i) const{return p[i];}
+	Vec vec(int i) const{return p[i];}
 
-        Vec normal() const
-        {
-            Vec n = (p[1] - p[0]) ^ (p[2] - p[0]);
+	Vec normal() const
+	{
+		Vec n = (p[1] - p[0]) ^ (p[2] - p[0]);
 
-            double length = n.norm();
+		double length = n.norm();
 
-            if(length < 1.0E-10)
-                    return n;
-            else
-                    return n /= length;
-        }
+		if(length < 1.0E-10)
+			return n;
+		else
+			return n /= length;
+	}
 
 	inline float edgeLenY(int e) const;
 
@@ -60,5 +61,5 @@ public:
 
 	Triangle shiftY(float offsetY);
 
-        void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false) const;
+	void intersectionTest(const Ray & ray, HitResult & res, bool allowBack = false) const;
 };

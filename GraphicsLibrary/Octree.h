@@ -19,16 +19,16 @@ using namespace std;
 class Octree
 {
 private:
-        Vector<Octree> children;
-        Vector<BaseTriangle*> triangleData;
+	Vector<Octree> children;
+	Vector<BaseTriangle*> triangleData;
 
 public:
-        BoundingBox boundingBox;
+	BoundingBox boundingBox;
 	int trianglePerNode;
 
-        Octree(){trianglePerNode = -1;}
+	Octree(){trianglePerNode = -1;}
 
-        Octree(const Vector<int> & trisIndex, Mesh * mesh, int triPerNode)
+	Octree(const Vector<int> & trisIndex, Mesh * mesh, int triPerNode)
 	{
 		for(Vector<int>::const_iterator index = trisIndex.begin(); index != trisIndex.end(); index++)
 		{
@@ -38,9 +38,9 @@ public:
 		init(triPerNode);
 	}
 
-        Octree(const StdList<BaseTriangle*>& tris, int triPerNode)
+	Octree(const StdList<BaseTriangle*>& tris, int triPerNode)
 	{
-                for(StdList<BaseTriangle*>::const_iterator f = tris.begin(); f != tris.end(); f++)
+		for(StdList<BaseTriangle*>::const_iterator f = tris.begin(); f != tris.end(); f++)
 		{
 			this->triangleData.push_back(*f);
 		}
@@ -52,30 +52,30 @@ public:
 	{
 		this->trianglePerNode = triPerNode;
 
-                BoundingBox bb;
+		BoundingBox bb;
 		bb.computeFromTris(triangleData);
 
 		//Transform and scale to node's coordinates
 		double largeSize = Max(bb.xExtent, Max(bb.yExtent, bb.zExtent));
 
-                this->boundingBox = BoundingBox(bb.center, largeSize, largeSize, largeSize);
+		this->boundingBox = BoundingBox(bb.center, largeSize, largeSize, largeSize);
 	}
 
-        void initBuild(const StdList<BaseTriangle*>& tris, int triPerNode )
+	void initBuild(const StdList<BaseTriangle*>& tris, int triPerNode )
 	{
 		// add triangles involved to "triangleData"
 		this->triangleData = LIST_TO_VECTOR(tris);
 		this->trianglePerNode = triPerNode;
 
 		// Create a big box
-                BoundingBox bb;
+		BoundingBox bb;
 		bb.computeFromTris(triangleData);
 
 		// Transform and scale to node's coordinates
 		double largeSize = Max(bb.xExtent, Max(bb.yExtent, bb.zExtent));
 
 		// Define our bounding box
-                this->boundingBox = BoundingBox(bb.center, largeSize, largeSize, largeSize);
+		this->boundingBox = BoundingBox(bb.center, largeSize, largeSize, largeSize);
 
 		// Build the tree
 		this->build();
@@ -91,27 +91,27 @@ public:
 		center.y = boundingBox.center.y + (extent * y);
 		center.z = boundingBox.center.z + (extent * z);
 
-                BoundingBox bb(center, extent, extent, extent);
+		BoundingBox bb(center, extent, extent, extent);
 
 		// Add child
-                children.push_back(Octree());
-                Octree * child = &children.back();
+		children.push_back(Octree());
+		Octree * child = &children.back();
 
-                child->boundingBox = bb;
-                child->trianglePerNode = this->trianglePerNode;
+		child->boundingBox = bb;
+		child->trianglePerNode = this->trianglePerNode;
 
-                // Collect triangles inside child's bounding box
-                for(Vector<BaseTriangle*>::iterator it = this->triangleData.begin(); it != this->triangleData.end(); it++)
-                {
-                    BaseTriangle* face = *it;
+		// Collect triangles inside child's bounding box
+		for(Vector<BaseTriangle*>::iterator it = this->triangleData.begin(); it != this->triangleData.end(); it++)
+		{
+			BaseTriangle* face = *it;
 
-                    if( bb.containsTriangle(face->vec(0), face->vec(1), face->vec(2)) )
-                    {
-                        child->triangleData.push_back(face);
-                    }
-                }
+			if( bb.containsTriangle(face->vec(0), face->vec(1), face->vec(2)) )
+			{
+				child->triangleData.push_back(face);
+			}
+		}
 
-                child->build(depth + 1); // build it
+		child->build(depth + 1); // build it
 	}
 
 	void build(int depth = 0)
@@ -133,12 +133,12 @@ public:
 		}
 	}
 
-        Vector<BaseTriangle*> getTriangleData()
+	Vector<BaseTriangle*> getTriangleData()
 	{
 		return triangleData;
 	}
 
-        Octree( int triPerNode, const BoundingBox& bb, const Vector<BaseTriangle*>& tris )
+	Octree( int triPerNode, const BoundingBox& bb, const Vector<BaseTriangle*>& tris )
 	{
 		this->boundingBox = bb;
 		this->trianglePerNode = triPerNode;
@@ -149,7 +149,7 @@ public:
 	{
 		SimpleDraw::DrawBox(boundingBox.center, boundingBox.xExtent, boundingBox.yExtent, boundingBox.zExtent,r,g,b);
 
-                for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
+		for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
 			child->draw(r,g,b);
 	}
 
@@ -158,9 +158,11 @@ public:
 		if(this->children.size() > 0)
 			return false;
 
-                for(Vector<BaseTriangle*>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
+		for(Vector<BaseTriangle*>::iterator it = triangleData.begin(); it != triangleData.end(); it++)
 		{
-			tris.insert( (*face)->index );
+			BaseTriangle * face = *it;
+
+			tris.insert( face->index );
 		}
 
 		return true;
@@ -181,7 +183,7 @@ public:
 		if (intersectHit(tris))
 			return;
 
-                for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
+		for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
 		{
 			if (child->boundingBox.contains(point))
 				child->intersectRecursivePoint(point, tris);
@@ -203,7 +205,7 @@ public:
 		if (intersectHit(tris))
 			return;
 
-                for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
+		for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
 		{
 			if (child->boundingBox.intersects(ray))
 				child->intersectRecursiveRay(ray, tris);
@@ -225,7 +227,7 @@ public:
 		if (intersectHit(tris))
 			return;
 
-                for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
+		for (Vector<Octree>::iterator child = children.begin();  child != children.end(); child++)
 		{
 			if (child->boundingBox.intersectsSphere(sphere_center, radius))
 				child->intersectRecursiveSphere(sphere_center, radius, tris);
@@ -250,7 +252,7 @@ public:
 
 	void intersectRayBoth(const Ray& ray, IndexSet & tris) 
 	{
-                stack<Octree*> trees;
+		stack<Octree*> trees;
 
 		Ray inverseRay(ray.inverse());
 
@@ -261,23 +263,25 @@ public:
 
 		while(!trees.empty())
 		{
-                        Octree * t = trees.top(); trees.pop();
+			Octree * t = trees.top(); trees.pop();
 
 			if (!t->intersectHit(tris))
 			{
-                                for (Vector<Octree>::iterator child = t->children.begin(); child != t->children.end(); child++)
+				for (Vector<Octree>::iterator child = t->children.begin(); child != t->children.end(); child++)
 				{
 					if (child->boundingBox.intersects(ray) || child->boundingBox.intersects(inverseRay))
+					{
 						trees.push(&(*child));
+					}
 				}
 			}
 		}
 	}
 
-        BaseTriangle* findClosestTri(const Ray & ray, IndexSet & tris, Mesh * mesh, HitResult & hitRes)
+	BaseTriangle* findClosestTri(const Ray & ray, IndexSet & tris, Mesh * mesh, HitResult & hitRes)
 	{
 		double minDist = DBL_MAX;
-                BaseTriangle *closestFace = NULL, *curr_FaceType = NULL;
+		BaseTriangle *closestFace = NULL, *curr_FaceType = NULL;
 
 		double u = 0.0, v = 0.0;
 		double actualMinDist = 0;
@@ -328,9 +332,9 @@ public:
 			return false;
 
 		// Do actual intersection test
-                for(Vector<BaseTriangle*>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
+		for(Vector<BaseTriangle*>::iterator face = triangleData.begin(); face != triangleData.end(); face++)
 		{
-                        BaseTriangle* f = *face;
+			BaseTriangle* f = *face;
 
 			f->intersectionTest(ray, hitRes, true);
 
@@ -343,7 +347,7 @@ public:
 
 	void testIntersectRayBoth(const Ray& ray, HitResult & hitRes) 
 	{
-                stack<Octree*> trees;
+		stack<Octree*> trees;
 
 		Ray inverseRay = ray.inverse();
 
@@ -352,7 +356,7 @@ public:
 
 		while(!trees.empty())
 		{
-                        Octree * t = trees.top(); trees.pop();
+			Octree * t = trees.top(); trees.pop();
 
 			if (t->testIntersectHit(ray, hitRes))
 			{
@@ -360,7 +364,7 @@ public:
 			}
 			else
 			{
-                                for (Vector<Octree>::iterator child = t->children.begin(); child != t->children.end(); child++)
+				for (Vector<Octree>::iterator child = t->children.begin(); child != t->children.end(); child++)
 				{
 					if (child->boundingBox.intersects(ray) || child->boundingBox.intersects(inverseRay))
 						trees.push(&(*child));
