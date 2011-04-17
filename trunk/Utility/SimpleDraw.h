@@ -114,7 +114,7 @@ public:
 	{
 		glDisable(GL_LIGHTING);
 
-		glClear(GL_DEPTH_BUFFER_BIT);
+		//glClear(GL_DEPTH_BUFFER_BIT);
 
 		// Set color
 		glColor3f(r, g, b);
