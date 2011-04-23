@@ -15,6 +15,9 @@ typedef IndexSet::iterator IndexSetIter;
 #include <stack>
 using namespace std;
 
+class BoundingBox;
+class Mesh;
+
 class Octree
 {
 private:
@@ -35,6 +38,8 @@ public:
 
 	void newNode( int depth, double x, double y, double z );
 	void build(int depth = 0);
+
+	vector<BaseTriangle*> getIntersectingTris(const Vec& v0, const Vec& v1, const Vec& v2, bool showIt=false);
 
 	bool intersectHit(IndexSet& tris);
 

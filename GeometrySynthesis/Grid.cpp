@@ -10,6 +10,8 @@ Grid::Grid(Vector<Vec> & src_spine, double radius, double Length, int sizeOfGrid
 	this->isReady = false;
 
 	this->stair = Stair;
+	this->detailed_octree = NULL;
+	this->base_octree = NULL;
 
 	// Copy pointers
 	foreach(Face * face, MeshFaces)
@@ -327,10 +329,10 @@ void Grid::Gridify(Vector<int> & selectedMeshFaces)
 
 	// Octree initialization
 	grid_octree = Octree(this->facesListPointers(), 20);
-	detailed_octree = Octree(selectedMeshFaces, detailed, 20);
-
 	grid_octree.build();
-	detailed_octree.build();
+
+	if(detailed->octree == NULL) detailed->rebuildOctree();
+	detailed_octree = detailed->octree;
 
 	printf("Done (%d ms).", (int)timer.elapsed());
 
@@ -530,7 +532,7 @@ void Grid::computeSquareValues()
 
 			IndexSet tris;
 
-			BaseTriangle * closestFace = detailed_octree.findClosestTri(ray, tris, mesh, hitRes);
+			BaseTriangle * closestFace = detailed_octree->findClosestTri(ray, tris, mesh, hitRes);
 
 			if(closestFace)
 			{

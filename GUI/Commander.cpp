@@ -9,12 +9,12 @@ Commander::Commander(QWidget *parent) : QWidget(parent)
 
 Commander::~Commander()
 {
-	
+
 }
 
 void Commander::OpenMesh()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Mesh"), "", tr("Mesh Files (*.obj)"));
+	QString fileName = QFileDialog::getOpenFileName(NULL, tr("Open Mesh"), "", tr("Mesh Files (*.obj)"));
 
 	if(fileName.length())
 	{
@@ -77,7 +77,7 @@ void Commander::OpenSkeleton(QString fileName, QString corrFileName)
 	if(fileName.length())
 	{
 		skeleton.loadFromFile(fileName.toAscii().data());
-	
+
 		// Load corr file
 		if(fileName.length())
 		{
@@ -90,7 +90,7 @@ void Commander::OpenSkeleton(QString fileName, QString corrFileName)
 				skeleton.calculateEdgesLengths();
 
 				// default behavior
-                viewer->setViewMode(SELECTION);
+				viewer->setViewMode(SELECTION);
 				viewer->setSelectMode(SKELETON_FACES);
 			}
 			else
@@ -334,7 +334,7 @@ void Commander::LoadScript()
 
 	if(!file.is_open())	return;
 
-        CreateTimer(timer);
+	CreateTimer(timer);
 	printf("\n=========\nExecuting script file..\n");
 
 	// Selection
@@ -367,7 +367,7 @@ void Commander::LoadScript()
 		if(inputLine.length() > 5)
 		{
 			Vec v;
-                        sscanf(inputLine.c_str(),"%lf %lf %lf", &v.x, &v.y, &v.z);
+			sscanf(inputLine.c_str(),"%lf %lf %lf", &v.x, &v.y, &v.z);
 			user_curve->spline.AddSplinePoint(v);
 		}
 	}
@@ -389,7 +389,7 @@ void Commander::LoadScript()
 		df_widget->DirectSynthesize();
 	}
 
-        printf("\n\nScript file done. (%d ms)\n=========\n", (int)timer.elapsed());
+	printf("\n\nScript file done. (%d ms)\n=========\n", (int)timer.elapsed());
 }
 
 void Commander::LoadUserCurve()
@@ -412,7 +412,7 @@ void Commander::LoadUserCurve()
 			if(inputLine.length() > 5)
 			{
 				Vec v;
-                                sscanf(inputLine.c_str(),"%lf %lf %lf", &v.x, &v.y, &v.z);
+				sscanf(inputLine.c_str(),"%lf %lf %lf", &v.x, &v.y, &v.z);
 				user_curve->spline.AddSplinePoint(v);
 			}
 		}
