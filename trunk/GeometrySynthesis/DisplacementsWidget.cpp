@@ -231,18 +231,12 @@ void DisplacementsWidget::DoSmoothing()
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	Print("Smoothing..", 500);
 
-	printf("\n\nInitializing Displacement Field... (grid size :%d)\n", grid_square_size->value());
-	
 	workingMesh = this->sourceMesh;
 
-	if(df) delete df;
-
-	stats["smoothing"] = Stats("Base extraction (smoothing)");
+	printf("\n\nInitializing Displacement Field... (grid size :%d)\n", grid_square_size->value());
 
 	df = new Displacements(workingMesh, this->skeleton, num_smooth_steps->value(), 
 		num_iteration->value(), step_size->value(), volume_preserve->isChecked());
-
-	stats["smoothing"].end();
 
 	UpdateDF(df);
 

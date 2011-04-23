@@ -2,9 +2,10 @@
 
 #pragma once
 
-#include "Mesh.h"
 #include "Triangle.h"
 #include "HashTable.h"
+
+class Mesh;
 
 /**
 * BoundingBox defines an axis-aligned cube that defines a

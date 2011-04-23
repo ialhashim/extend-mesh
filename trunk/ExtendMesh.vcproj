@@ -660,6 +660,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\GraphicsLibrary\Curvature.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GraphicsLibrary\Curvature.h"
+				>
+			</File>
+			<File
 				RelativePath=".\GraphicsLibrary\Edge.h"
 				>
 			</File>
@@ -781,6 +789,10 @@
 			</File>
 			<File
 				RelativePath=".\GraphicsLibrary\VBO.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GraphicsLibrary\Vec4.h"
 				>
 			</File>
 			<File

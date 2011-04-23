@@ -22,10 +22,11 @@ Mesh::Mesh(int expectedNumVerts)
 	isShowVertexNormals = false;
 	isShowFaceNormals = false;
 
-	vbo = NULL;
+	this->vbo = NULL;
+	this->octree = NULL;
 
 	this->radius = 0.0;
-        this->normalize_scale = 1.0;
+	this->normalize_scale = 1.0;
 
 	this->vertex.reserve(expectedNumVerts);
 	this->vertexInfo.reserve(expectedNumVerts);
@@ -48,7 +49,7 @@ Mesh::Mesh(const Mesh& fromMesh)
 	this->minBound = fromMesh.minBound;
 	this->radius = fromMesh.radius;
 	this->normalize_scale = fromMesh.normalize_scale;
-	
+
 	this->face = fromMesh.face;
 	this->fNormal = fromMesh.fNormal;
 
@@ -86,6 +87,8 @@ Mesh::Mesh(const Mesh& fromMesh)
 	else
 		this->vbo = new VBO(&this->vertex, &this->vNormal, &this->vColor, &this->face);
 
+	this->octree = NULL;
+
 	//this->tempUmbrellas = fromMesh.tempUmbrellas;
 	this->tempUmbrellas.clear();
 
@@ -115,13 +118,15 @@ Mesh::~Mesh()
 	this->vColor.clear();
 	this->fNormal.clear();
 
-	if(vbo)
-		delete vbo;
+	if(octree)	delete octree;
+	if(vbo)	delete vbo;
 }
 
 Mesh& Mesh::operator= (const Mesh& fromMesh)
 {
-    if (this != &fromMesh) {
+	if (this != &fromMesh) {
+		this->octree = fromMesh.octree;
+
 		this->center = fromMesh.center;
 
 		this->id = fromMesh.id;
@@ -160,7 +165,7 @@ Mesh& Mesh::operator= (const Mesh& fromMesh)
 
 			this->vertexInfo[v3].insertFace(&(*f));
 			this->vertexInfo[v3].index = v3;
-			
+
 			this->faceIndexMap[f->index] = &(*f);
 		}
 
@@ -168,6 +173,8 @@ Mesh& Mesh::operator= (const Mesh& fromMesh)
 			this->vbo = NULL;
 		else
 			this->vbo = new VBO(&this->vertex, &this->vNormal, &this->vColor, &this->face);
+		
+		this->octree = NULL;
 
 		//this->tempUmbrellas = fromMesh.tempUmbrellas;
 		this->tempUmbrellas.clear();
@@ -185,9 +192,9 @@ Mesh& Mesh::operator= (const Mesh& fromMesh)
 		// debug items
 		selectedFace = -1;
 		selectedVertex = -1;
-    }
+	}
 
-    return *this;
+	return *this;
 }
 
 void Mesh::mergeWith(const Mesh& other)
@@ -226,7 +233,7 @@ void Mesh::addFace(int v0, int v1, int v2, int index, bool forceOrientation)
 	{
 		// if vertex normals are known, we can find correct orientation
 		Vec newNormal = (vertex[v1] - vertex[v0]) ^ (vertex[v2] - vertex[v0]);
-		
+
 		// If they are not pointing at the same direction, swap first and last
 		if(newNormal * computeVNormalAt(v0) < 0)
 		{
@@ -241,11 +248,11 @@ void Mesh::addFace(int v0, int v1, int v2, int index, bool forceOrientation)
 	if(v0 == v1) printf("WARNING: degenerate face (v1,v2) \n");
 	if(v0 == v2) printf("WARNING: degenerate face (v1,v3) \n");
 	if(v1 == v2) printf("WARNING: degenerate face (v2,v3) \n");
-	
+
 	Face * f = &face.back();
 
 	faceIndexMap[index] = f;
-	
+
 	vertexInfo[v0].insertFace(f);
 	vertexInfo[v1].insertFace(f);
 	vertexInfo[v2].insertFace(f);
@@ -296,9 +303,7 @@ void Mesh::normalizeScale()
 	double sizeY = maxBound[1] - minBound[1];
 	double sizeZ = maxBound[2] - minBound[2];
 
-	double maxScale = Max(sizeX, Max(sizeY, sizeZ));
-
-	normalize_scale = 1.0;
+	maxScale = Max(sizeX, Max(sizeY, sizeZ));
 
 	double scale = normalize_scale / maxScale;
 
@@ -313,8 +318,10 @@ void Mesh::normalizeScale()
 	}
 
 	computeBounds();
-	
+
 	printf("Mesh Radius = %f (scaled:%f)\n", radius, scale);
+
+	if(vbo)	setDirtyVBO(true);
 }
 
 void Mesh::computeNormals()
@@ -392,7 +399,7 @@ void Mesh::loadFromFile(const char* fileName)
 {
 	isReady = false;
 
-        CreateTimer(allStartTime);
+	CreateTimer(allStartTime);
 
 	printf("Loading...(%s)\n", fileName);
 
@@ -425,7 +432,7 @@ void Mesh::loadFromFile(const char* fileName)
 					if(vCount % 10000 == 0)	printf(".");
 				}
 				break;
-			
+
 			case 'f':
 				if(sscanf(inputLine.c_str(), "f %d %d %d", &v1,&v2,&v3) == 3 ||
 					sscanf(inputLine.c_str(), "f %d//%d %d//%d %d//%d", &v1,&v1 , &v2,&v2 , &v3,&v3) == 6)
@@ -435,11 +442,11 @@ void Mesh::loadFromFile(const char* fileName)
 					if(fCount % 10000 == 0)	printf(".");
 					fCount++;
 				}
-				
+
 				break;
 			}
 		}
-		
+
 		// default color
 		vColor = Vector<Color4>(vertex.size(), Color4());
 
@@ -454,22 +461,126 @@ void Mesh::loadFromFile(const char* fileName)
 	normalizeScale();
 
 	// Normals
-        printf("\nComputing Normals.."); CreateTimer(normalTimer);
+	printf("\nComputing Normals.."); CreateTimer(normalTimer);
 	computeNormals();
-        printf("Done (%d ms).\n", (int)normalTimer.elapsed());
+	printf("Done (%d ms).\n", (int)normalTimer.elapsed());
 
 	// VBO representation
-        printf("Creating VBO object.."); CreateTimer(vboTimer);
+	printf("Creating VBO object.."); CreateTimer(vboTimer);
 	createVBO();
-        printf("Done (%d ms).\n", (int)vboTimer.elapsed());
+	printf("Done (%d ms).\n", (int)vboTimer.elapsed());
 
 	// Umbrella structure
-        printf("Collecting Umbrellas.."); CreateTimer(umbrellasTimer);
+	printf("Collecting Umbrellas.."); CreateTimer(umbrellasTimer);
 	getUmbrellas();
-        printf("Done (%d ms).\n", (int)umbrellasTimer.elapsed());
+	printf("Done (%d ms).\n", (int)umbrellasTimer.elapsed());
 
-        printf("\n\t V = \t%d\tF = \t%d\n", (int)vertex.size(), (int)face.size());
-        printf("\nMesh file loaded successfully. (%d ms)\n", (int)allStartTime.elapsed());
+	printf("\n\t V = \t%d\tF = \t%d\n", (int)vertex.size(), (int)face.size());
+	printf("\nMesh file loaded successfully. (%d ms)\n", (int)allStartTime.elapsed());
+
+	isReady = true;
+}
+
+void Mesh::loadFromFileOFF( const char* fileName )
+{
+	isReady = false;
+
+	CreateTimer(allStartTime);
+
+	printf("Loading...(%s)\n", fileName);
+
+	std::string inputLine;
+	FileStream file (fileName);
+
+	float x,y,z;
+	int v1,v2,v3,nv;
+
+	int vCount, fCount, eCount, total_vCount, total_fCount, total_eCount;
+	vCount = fCount = eCount = total_vCount = total_fCount = total_eCount = 0;
+
+	bool readingVertices, readingFaces;
+	readingVertices = readingFaces = false;
+
+	if (file.is_open())
+	{
+		while (!file.eof())
+		{
+			GetLine (file, inputLine);
+
+			// Skip comments, empty lines
+			if(inputLine[0] == '#')	
+				continue;
+
+			if(readingFaces)
+			{
+				if(sscanf(inputLine.c_str(), "%d %d %d %d",&nv,&v1,&v2,&v3) == 4)
+				{
+					this->addFace(v1, v2, v3, fCount++);
+
+					if(fCount % 10000 == 0)	printf(".");
+
+					if(fCount == total_fCount)
+						break;
+				}
+			}
+
+			if(readingVertices && vCount < total_vCount && inputLine.length() > 4)
+			{
+				if(sscanf(inputLine.c_str(), "%f %f %f",&x,&y,&z) == 3)
+				{
+					this->addVertex (x, y, z, vCount++);
+					if(vCount % 10000 == 0)	printf(".");
+
+					if(vCount == total_vCount)
+					{
+						readingVertices = false;
+						readingFaces = true;
+						printf(".Reading faces ");
+					}
+					continue;
+				}
+			}
+
+			// Try to find first line with three integers
+			if(!readingVertices && !readingFaces && 
+				sscanf(inputLine.c_str(), "%d %d %d",&total_vCount,&total_fCount,&total_eCount) == 3)
+			{
+				readingVertices = true;
+				readingFaces = false;
+				printf(".Reading vertices ");
+			}
+		}
+
+		// default color
+		vColor = Vector<Color4>(vertex.size(), Color4());
+
+		// we are done, close the file
+		file.close();
+	}
+
+	// Center mesh into world
+	moveToCenter();
+
+	// Normalize mesh
+	normalizeScale();
+
+	// Normals
+	printf("\nComputing Normals.."); CreateTimer(normalTimer);
+	computeNormals();
+	printf("Done (%d ms).\n", (int)normalTimer.elapsed());
+
+	// VBO representation
+	printf("Creating VBO object.."); CreateTimer(vboTimer);
+	createVBO();
+	printf("Done (%d ms).\n", (int)vboTimer.elapsed());
+
+	// Umbrella structure
+	printf("Collecting Umbrellas.."); CreateTimer(umbrellasTimer);
+	getUmbrellas();
+	printf("Done (%d ms).\n", (int)umbrellasTimer.elapsed());
+
+	printf("\n\t V = \t%d\tF = \t%d\n", (int)vertex.size(), (int)face.size());
+	printf("\nMesh file loaded successfully. (%d ms)\n", (int)allStartTime.elapsed());
 
 	isReady = true;
 }
@@ -490,7 +601,7 @@ void Mesh::saveToFile(const char* fileName)
 		Vertex * v = this->v(i);
 		fprintf(fp, "v %f %f %f\n", v->x, v->y, v->z);
 	}
-	
+
 	// Write triangles
 	for(int i = 0; i < numFaces; i++){
 		Face * f = this->f(i);
@@ -548,7 +659,7 @@ void Mesh::setColor(Vector<int> & vertices, int r, int g, int b, int a)
 	else
 		isTransparent = false;
 
-        for(int i = 0; i < (int)vertices.size(); i++)
+	for(int i = 0; i < (int)vertices.size(); i++)
 		vColor[vertices[i]].set(r, g, b, a);
 
 	if(vbo)	vbo->setDirty(true);
@@ -577,7 +688,7 @@ void Mesh::setColorFaces(Vector<int> & faces, int r, int g, int b, int a)
 	else
 		isTransparent = false;
 
-        for(int i = 0; i < (int)faces.size(); i++)
+	for(int i = 0; i < (int)faces.size(); i++)
 	{
 		Face * f = this->f(faces[i]);
 
@@ -658,7 +769,7 @@ Vector<int> Mesh::getBorderVertices()
 	Vector<int> borderVerts;
 	borderVerts.reserve(vertex.size() / 2);
 
-        for(int i = 0; i < (int)vertexInfo.size(); i++)
+	for(int i = 0; i < (int)vertexInfo.size(); i++)
 	{
 		if(vertexInfo[i].checkIsBorder())
 		{
@@ -677,7 +788,7 @@ void Mesh::translate(Vec delta)
 
 void Mesh::translate(double x, double y, double z)
 {
-        for( int i = 0; i < (int)vertex.size(); i++)
+	for( int i = 0; i < (int)vertex.size(); i++)
 		vertex[i].add(x,y,z);
 
 	vbo->setDirty(true);
@@ -693,7 +804,7 @@ void Mesh::translateVertices(const Vector<int> & vertices, Vec & delta)
 	vbo->setDirty(true);
 }
 
-void Mesh::rotateVertices(const Vector<int> & vertices, const Rotation & q, const Vec & pivot)
+void Mesh::rotateVertices(const Vector<int> & vertices, const qglviewer::Quaternion & q, const Vec & pivot)
 {
 	foreach(const int& i, vertices)
 	{
@@ -705,9 +816,9 @@ void Mesh::rotateVertices(const Vector<int> & vertices, const Rotation & q, cons
 
 void Mesh::rotate(Vec axis, double angle)
 {
-	Rotation q(axis, angle);
-	
-        for(int i = 0; i < (int)vertex.size(); i++)
+	qglviewer::Quaternion q(axis, angle);
+
+	for(int i = 0; i < (int)vertex.size(); i++)
 		vertex[i].set(q.rotate(vertex[i]));
 
 	vbo->setDirty(true);
@@ -715,7 +826,7 @@ void Mesh::rotate(Vec axis, double angle)
 
 void Mesh::scale(double factor)
 {
-        for(int i = 0; i < (int)vertex.size(); i++)
+	for(int i = 0; i < (int)vertex.size(); i++)
 		vertex[i] *= factor;
 
 	vbo->setDirty(true);
@@ -769,7 +880,7 @@ void Mesh::draw()
 		if(this->isShowVertexNormals)
 		{
 			Vector<Vec> start, direction;
-                        for(int i = 0; i < (int)vertex.size(); i++){
+			for(int i = 0; i < (int)vertex.size(); i++){
 				start.push_back(vertex[i]); direction.push_back(vNormal[i]);}
 			SimpleDraw::DrawLineTick(start, direction);
 		}
@@ -777,7 +888,7 @@ void Mesh::draw()
 		if(this->isShowFaceNormals)
 		{
 			Vector<Vec> start, direction;
-                        for(int i = 0; i < (int)fNormal.size(); i++){
+			for(int i = 0; i < (int)fNormal.size(); i++){
 				start.push_back(f(i)->center()); direction.push_back(fNormal[i]);}
 			SimpleDraw::DrawLineTick(start, direction, 0.1f, true, 1, 1, 0, 1);
 		}
@@ -807,40 +918,40 @@ void Mesh::draw()
 		Color4 * c = &it->second;
 		SimpleDraw::IdentifyPoint(*it->first, c->r(), c->g(), c->b());
 	} // draw markers
-	
+
 	for(Vector<Face>::iterator it = testFaces.begin(); it != testFaces.end(); it++)
 		SimpleDraw::DrawTriangle(it->vec(0), it->vec(1), it->vec(2)); // test faces
-	
+
 	// test vertex
 	Vector<Vec> testVecs;
 	foreach(Vertex v, testVertex) testVecs.push_back(v);
 	SimpleDraw::IdentifyPoints(testVecs); 
 
-        for(Vector<Vector<Vec> >::iterator it = redPoints.begin(); it != redPoints.end(); it++)
+	for(Vector<Vector<Vec> >::iterator it = redPoints.begin(); it != redPoints.end(); it++)
 		SimpleDraw::IdentifyConnectedPoints(*it, 1.0, 0.2f, 0.4f); // red points
-        for(Vector<Vector<Vec> >::iterator it = bluePoints.begin(); it != bluePoints.end(); it++)
+	for(Vector<Vector<Vec> >::iterator it = bluePoints.begin(); it != bluePoints.end(); it++)
 		SimpleDraw::IdentifyConnectedPoints(*it, 0.1f, 0.2f, 1.0); // blue points
-	
-        for(Vector<StdSet<Face*> >::iterator f = greenFaces.begin(); f != greenFaces.end(); f++){
+
+	for(Vector<StdSet<Face*> >::iterator f = greenFaces.begin(); f != greenFaces.end(); f++){
 		int i = 0; int N = f->size()/2;
 		foreach(Face * face, *f){
 			double alpha = (double)i / N;
 			SimpleDraw::DrawTriangle(face->vec(0),face->vec(1),face->vec(2),0.2f,1,0.1f,alpha); i++;
 		}
 	} // green faces
-        for(Vector<StdSet<Face*> >::iterator f = yellowFaces.begin(); f != yellowFaces.end(); f++){
+	for(Vector<StdSet<Face*> >::iterator f = yellowFaces.begin(); f != yellowFaces.end(); f++){
 		int i = 0; int N = f->size()/2;
 		foreach(Face * face, *f){
 			double alpha = (double)i / N;
 			SimpleDraw::DrawTriangle(face->vec(0),face->vec(1),face->vec(2),1.0f,1.0f,0.1f,alpha); i++;
 		}
 	} // yellow faces
-	
+
 	SimpleDraw::IdentifyConnectedPoints(testPoints);// test points
 	for(Vector<Line>::iterator it = testLines.begin(); it != testLines.end(); it++)	it->draw(); // draw test lines
 	for(Vector<Plane>::iterator it = testPlanes.begin(); it != testPlanes.end(); it++)	it->draw(); // draw test planes
 
-        if(selectedFace >= 0 && selectedFace < (int)face.size())
+	if(selectedFace >= 0 && selectedFace < (int)face.size())
 	{
 		Face * face = faceIndexMap[selectedFace];
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -857,8 +968,8 @@ void Mesh::drawSimple(bool smooth)
 	Vec f_normal, v1, v2, v3, n1, n2, n3;
 
 	// This is useful for simple mesh constructions
-        if((int)vNormal.size() != numberOfVertices())computeNormals();
-        if((int)vColor.size() != numberOfVertices()) vColor = Vector<Color4>(vertex.size(), Color4());
+	if((int)vNormal.size() != numberOfVertices())computeNormals();
+	if((int)vColor.size() != numberOfVertices()) vColor = Vector<Color4>(vertex.size(), Color4());
 
 	if(smooth)
 		glShadeModel(GL_SMOOTH);
@@ -866,39 +977,39 @@ void Mesh::drawSimple(bool smooth)
 	glBegin(GL_TRIANGLES);
 
 	for(StdList<Face>::iterator f = face.begin(); f != face.end(); f++)
-        {
-                f_normal = fNormal[f->index];
+	{
+		f_normal = fNormal[f->index];
 
-                Color4 * color1 = &vColor[f->vIndex[0]];
-                Color4 * color2 = &vColor[f->vIndex[1]];
-                Color4 * color3 = &vColor[f->vIndex[2]];
+		Color4 * color1 = &vColor[f->vIndex[0]];
+		Color4 * color2 = &vColor[f->vIndex[1]];
+		Color4 * color3 = &vColor[f->vIndex[2]];
 
-                if(smooth){
-                        n1 = vNormal[f->vIndex[0]];
-                        n2 = vNormal[f->vIndex[1]];
-                        n3 = vNormal[f->vIndex[2]];
-                }
-                else
-                {
-                        glNormal3dv(f_normal);
-                }
+		if(smooth){
+			n1 = vNormal[f->vIndex[0]];
+			n2 = vNormal[f->vIndex[1]];
+			n3 = vNormal[f->vIndex[2]];
+		}
+		else
+		{
+			glNormal3dv(f_normal);
+		}
 
-                v1 = f->v[0]->vec();
-                v2 = f->v[1]->vec();
-                v3 = f->v[2]->vec();
+		v1 = f->v[0]->vec();
+		v2 = f->v[1]->vec();
+		v3 = f->v[2]->vec();
 
-                glColor4f(color1->r(), color1->g(), color1->b(), color1->a());
-                if(smooth) glNormal3dv(n1);
-                glVertex3dv(v1);
+		glColor4f(color1->r(), color1->g(), color1->b(), color1->a());
+		if(smooth) glNormal3dv(n1);
+		glVertex3dv(v1);
 
-                glColor4f(color2->r(), color2->g(), color2->b(), color2->a());
-                if(smooth) glNormal3dv(n2);
-                glVertex3dv(v2);
+		glColor4f(color2->r(), color2->g(), color2->b(), color2->a());
+		if(smooth) glNormal3dv(n2);
+		glVertex3dv(v2);
 
-                glColor4f(color3->r(), color3->g(), color3->b(), color3->a());
-                if(smooth) glNormal3dv(n3);
-                glVertex3dv(v3);
-        }
+		glColor4f(color3->r(), color3->g(), color3->b(), color3->a());
+		if(smooth) glNormal3dv(n3);
+		glVertex3dv(v3);
+	}
 
 	glEnd();
 }
@@ -913,7 +1024,7 @@ void Mesh::drawSimpleWireframe(bool useDefaultColor)
 		glColor3f(0, 0.75, 0);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
+
 	Vec v1, v2, v3;
 
 	glBegin(GL_TRIANGLES);
@@ -939,7 +1050,7 @@ void Mesh::drawSimplePoints(double pointSize)
 	glDisable(GL_BLEND);
 
 	glBegin(GL_POINTS);
-        for(int i = 0; i < (int)vertex.size(); i++)
+	for(int i = 0; i < (int)vertex.size(); i++)
 	{
 		if(vColor[i].a() > 0)
 		{
@@ -983,7 +1094,7 @@ void Mesh::drawUmbrella(Umbrella * u)
 
 	glBegin(GL_POINTS);
 	glColor3f(1.0, 0, 0);
-        for(int i = 0; i < (int)u->neighbor.size(); i++)
+	for(int i = 0; i < (int)u->neighbor.size(); i++)
 		drawVertex(u->neighbor[i]);
 	glColor3f(0, 1.0, 0);
 	drawVertex(u->index);
@@ -995,14 +1106,14 @@ void Mesh::drawUmbrella(Umbrella * u)
 	foreach(HalfEdge h, u->halfEdge)
 		drawEdge(&h.edge);
 	glEnd();
-	
+
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset( 0.5, 1.0 );
 
 	/*glBegin(GL_TRIANGLES);
 	glColor3f(0, 0, 1.0);
 	foreach(Face * f, u->ifaces)
-		drawFace(f);
+	drawFace(f);
 	glEnd();*/
 
 	glDisable(GL_POLYGON_OFFSET_FILL);
@@ -1012,7 +1123,7 @@ void Mesh::drawUmbrella(Umbrella * u)
 
 void Mesh::drawVertexNames()
 {
-        for(int i = 0; i < (int)vertex.size(); i++)
+	for(int i = 0; i < (int)vertex.size(); i++)
 	{
 		glPushName(i);
 		glBegin(GL_POINTS);
@@ -1042,7 +1153,7 @@ Mesh * Mesh::CloneSubMesh ( Vector<int> & facesIndex, bool isShallowClone, StdSt
 	int numVertices = numFaces * 3;
 
 	Mesh * clone = new Mesh();
-	
+
 	// String identification
 	if(newId.size() > 0)
 		clone->id = newId;
@@ -1064,7 +1175,7 @@ Mesh * Mesh::CloneSubMesh ( Vector<int> & facesIndex, bool isShallowClone, StdSt
 	std::pair< std::map<int,int>::iterator , bool > r1, r2, r3;
 
 	// Add selected faces to our sub-clone
-        for(int i = 0; i < (int)facesIndex.size(); i++)
+	for(int i = 0; i < (int)facesIndex.size(); i++)
 	{
 		Face * face = this->faceIndexMap[facesIndex[i]];
 
@@ -1110,7 +1221,7 @@ Mesh * Mesh::CloneSubMesh ( Vector<int> & facesIndex, bool isShallowClone, StdSt
 
 void Mesh::addNoise(double scale)
 {
-        for( int i = 0; i < (int)vertex.size(); i++)
+	for( int i = 0; i < (int)vertex.size(); i++)
 		vertex[i].add(rand() * scale, rand() * scale, rand() * scale);
 
 	this->computeNormals();
@@ -1167,7 +1278,7 @@ void Mesh::refreshFaces(StdSet<Face *>& modifiedFaces)
 
 		v_normal.setValue(0,0,0);
 
-                for (int j = 0; j < (int)vertexInfo[i].ifaces.size(); j++)
+		for (int j = 0; j < (int)vertexInfo[i].ifaces.size(); j++)
 			v_normal += fNormal[currFace[j]->index];
 
 		vNormal[i] = Vertex(v_normal.unit());
@@ -1196,10 +1307,10 @@ int Mesh::vertexIndexClosest(const Vec& point)
 	int closestIndex = -1;
 	double minDist = DBL_MAX;
 
-        for(int i = 0; i < (int)vertex.size(); i++)
+	for(int i = 0; i < (int)vertex.size(); i++)
 	{
 		double dist = (vertex[i] - point).norm();
-		
+
 		if(dist < minDist)
 		{
 			minDist = dist;
@@ -1212,8 +1323,8 @@ int Mesh::vertexIndexClosest(const Vec& point)
 
 void Mesh::clearAllVertexFlag()
 {
-	#pragma omp parallel for
-        for(int i = 0; i < (int)vertexInfo.size(); i++)
+#pragma omp parallel for
+	for(int i = 0; i < (int)vertexInfo.size(); i++)
 		vertexInfo[i].flag = VF_CLEAR;
 }
 
@@ -1236,7 +1347,7 @@ void Mesh::getUmbrellas(Vector<Umbrella> & result)
 
 	tempUmbrellas = Vector<Umbrella>(N);
 
-	#pragma omp parallel for
+#pragma omp parallel for
 	for(int i = 0; i < N; i++)
 		tempUmbrellas[i] = Umbrella(&vertexInfo[i]);
 
@@ -1253,7 +1364,7 @@ HashMap<int, Vec> Mesh::getPoints()
 {
 	HashMap<int, Vec> result;
 
-        for(int i = 0; i < (int)vertex.size(); i++)
+	for(int i = 0; i < (int)vertex.size(); i++)
 		result[i] = vertex[i];
 
 	return result;
@@ -1263,7 +1374,7 @@ int Mesh::getVertexIndexFromPos(const Vec& pos)
 {
 	int index = -1;
 
-        for(int i = 0; i < (int)vertex.size(); i++)
+	for(int i = 0; i < (int)vertex.size(); i++)
 	{
 		if(pos.x == vertex[i].x && pos.y == vertex[i].y && pos.z == vertex[i].z)
 		{
@@ -1279,7 +1390,7 @@ StdSet<int> Mesh::getVerticesFromFaces(const Vector<int> & facesIndex)
 {
 	StdSet<int> verts;
 
-        for(int i = 0; i < (int)facesIndex.size(); i++)
+	for(int i = 0; i < (int)facesIndex.size(); i++)
 	{
 		Face * face = this->faceIndexMap[facesIndex[i]];
 
@@ -1295,7 +1406,7 @@ StdList<Face*> Mesh::getFacesFromIndices(const Vector<int> & facesIndex)
 {
 	StdList<Face*> result;
 
-        for(int i = 0; i < (int)facesIndex.size(); i++)
+	for(int i = 0; i < (int)facesIndex.size(); i++)
 		result.push_back(this->faceIndexMap[facesIndex[i]]);
 
 	return result;
@@ -1335,6 +1446,16 @@ Vector<Vertex> Mesh::getCopyPoints()
 	return vertex;
 }
 
+const Vector<Vertex>& Mesh::getVertices() const
+{
+	return vertex;
+}
+
+const Vector<Normal>& Mesh::getNormals() const
+{
+	return vNormal;
+}
+
 void Mesh::setMeshPoints(const Vector<Vertex> & fromPoint)
 {
 	vertex = fromPoint;
@@ -1371,7 +1492,7 @@ StdSet<int> Mesh::getConnectedPart(int vIndex)
 			}
 		}
 	}
-	
+
 	return partVerts;
 }
 
@@ -1475,7 +1596,7 @@ HoleStructure Mesh::getHoles()
 	HashMap<int, int> belongsToHole;
 
 	// fill belong map with -1
-        for(int i = 0; i < (int)borderVertices.size(); i++)
+	for(int i = 0; i < (int)borderVertices.size(); i++)
 		belongsToHole[borderVertices[i]] = -10;
 
 	int currHole = numberOfVertices() - 1;
@@ -1498,7 +1619,7 @@ HoleStructure Mesh::getHoles()
 		// Declare a new hole
 		currHole++;
 		bool endOfLoop = false;
-		
+
 		// Add v to this hole
 		belongsToHole[v] = currHole;
 		hole[currHole].push_back(v);
@@ -1514,7 +1635,7 @@ HoleStructure Mesh::getHoles()
 				endOfLoop = true;
 				break;
 			}
-			
+
 			if(belongsToHole[n.first] == currHole)
 			{
 				belongsToHole[n.second] = currHole;
@@ -1588,7 +1709,7 @@ StdList<int> Mesh::getBoundry(int startIndex, bool rebuildUmbrellas)
 		}
 
 		prev = boundry.back();
-				
+
 	} while( foundNext && next != boundry.front() );
 
 	return boundry;
@@ -1612,7 +1733,7 @@ StdSet<int> Mesh::visitFromBoundry(int boundryVertex, const StdSet<int>& border)
 		foreach(HalfEdge e, tempUmbrellas[i].halfEdge)
 		{
 			int j = e.edge.neighbor();
-			
+
 			// Check: not visited && not on inner border
 			if(visited.find(j) == visited.end() && border.find(j) == border.end()) 
 			{
@@ -1667,11 +1788,11 @@ Face * Mesh::intersectRay( const Ray& ray, HitResult & hitRes )
 
 StdList<BaseTriangle*> Mesh::facesListPointers()
 {
-        StdList<BaseTriangle*> result;
+	StdList<BaseTriangle*> result;
 
 	for(StdList<Face>::iterator f = face.begin(); f != face.end(); f++)
 	{
-                result.push_back((BaseTriangle*)&(*f));
+		result.push_back((BaseTriangle*)&(*f));
 	}
 
 	return result;
@@ -1720,13 +1841,13 @@ StdSet<int> Mesh::getManifoldFaces( int startFace )
 		if(!vertexInfo[vi].isMissingBorder() && !visitedVertices.has(vi))
 		{
 			// add the adjacent faces
-                        for(int i = 0; i < (int)vertexInfo[vi].ifaces.size(); i++)
+			for(int i = 0; i < (int)vertexInfo[vi].ifaces.size(); i++)
 			{
 				manifoldFaces.insert(vertexInfo[vi].ifaces[i]->index);
 			}
 
 			StdSet<int> adj = vertexInfo[vi].adjacentVertices();
-			
+
 			foreach(int j, adj)
 			{
 				if( !visitedVertices.has( j ) ) 
@@ -1739,4 +1860,29 @@ StdSet<int> Mesh::getManifoldFaces( int startFace )
 	}
 
 	return manifoldFaces;
+}
+
+void Mesh::rebuildOctree()
+{
+	printf("Rebuilding Octree.."); CreateTimer(timer);
+
+	if(this->octree)	
+		delete this->octree;
+
+	octree = new Octree();
+	octree->initBuild(facesListPointers(), 20);
+
+	printf("Done (%d ms).\n", (int)timer.elapsed());
+}
+
+double Mesh::maxFaceArea()
+{
+	double maxArea = DBL_MIN;
+
+	for(StdList<Face>::iterator f = face.begin(); f != face.end(); f++)
+	{
+		maxArea = Max(maxArea, f->area());
+	}
+
+	return maxArea;
 }

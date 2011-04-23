@@ -69,7 +69,8 @@ void Viewer::draw()
 
 	foreach(Mesh * m, meshes)
 	{
-		m->draw();
+		if(m->isReady)
+			m->draw();
 	}
 
 	// Draw User curve

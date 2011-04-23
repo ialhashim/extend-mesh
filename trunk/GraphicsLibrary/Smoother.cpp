@@ -3,7 +3,7 @@
 
 void Smoother::LaplacianSmoothing(Mesh * m, StdSet<Face*> & faceList, int numIteration, bool protectBorders)
 {
-        CreateTimer(timer);
+	CreateTimer(timer);
 	printf("\nPerforming Laplacian smoothing (iterations = %d)...", numIteration);
 
 	if(protectBorders)
@@ -33,7 +33,7 @@ void Smoother::LaplacianSmoothing(Mesh * m, StdSet<Face*> & faceList, int numIte
 
 				newPositions[v1] += face->vec(j2);
 				newPositions[v2] += face->vec(j);
-			
+
 				count[v1]++;
 				count[v2]++;
 
@@ -61,7 +61,7 @@ void Smoother::LaplacianSmoothing(Mesh * m, StdSet<Face*> & faceList, int numIte
 		}
 	}
 
-        printf("done. (%d ms)\n", (int)timer.elapsed());
+	printf("done. (%d ms)\n", (int)timer.elapsed());
 }
 
 void Smoother::LaplacianSmoothing(Mesh * m, int numIteration, bool protectBorders)
@@ -82,7 +82,7 @@ void Smoother::LaplacianSmoothing(Mesh * m, int numIteration, bool protectBorder
 Vertex Smoother::LaplacianSmoothVertex(Mesh * m, int vi)
 {
 	Vertex newPos;
-	
+
 	StdSet<int> adj = m->vertexInfo[vi].adjacentVertices();
 
 	foreach(int j, adj)
@@ -113,7 +113,7 @@ Vertex Smoother::ScaleDependentSmoothVertex(Mesh * m, int vi, float step_size)
 	Vertex diff, sigma;
 	double E = 0.0;
 
-        for(HalfEdgeSet::iterator h = u->halfEdge.begin(); h != u->halfEdge.end(); h++)
+	for(HalfEdgeSet::iterator h = u->halfEdge.begin(); h != u->halfEdge.end(); h++)
 	{
 		int j = h->vertex(0);
 
@@ -135,7 +135,7 @@ Vertex Smoother::ScaleDependentSmoothVertex(Mesh * m, int vi, float step_size)
 
 	// Normalize weights
 	if(E > 0){
-                for(int j = 0; j < (int)nighbour.size(); j++)
+		for(int j = 0; j < (int)nighbour.size(); j++)
 		{
 			weight[j] /= E;
 			sigma += (weight[j] * (nighbour[j] - pt));
@@ -199,7 +199,7 @@ void Smoother::ScaleDependentSmoothing(Mesh * m, int numIteration, float step_si
 				// Normalize weights
 				if(E > 0)
 				{
-                                        for(int j = 0; j < (int)nighbour.size(); j++)
+					for(int j = 0; j < (int)nighbour.size(); j++)
 					{
 						weight[j] /= E;
 						sigma += (weight[j] * (nighbour[j] - pt));
@@ -211,7 +211,7 @@ void Smoother::ScaleDependentSmoothing(Mesh * m, int numIteration, float step_si
 		}
 
 		#pragma omp parallel for
-                for(int i = 0; i < (int)newPositions.size(); i++)
+		for(int i = 0; i < (int)newPositions.size(); i++)
 		{
 			if(m->vertexInfo[i].flag != VF_BORDER)
 				m->vertex[i].set( newPositions[i] );
@@ -224,23 +224,23 @@ void Smoother::ScaleDependentSmoothing(Mesh * m, int numIteration, float step_si
 	m->vbo->setDirty(true);
 }
 
- /* 
-  * Implementation of "Implicit Fairing of Irregular Meshes using Diffusion and Curvature Flow"
-  * Based on http://www.stanford.edu/~vkl/code/vdec.html
-  *
-  * Instead of (I - lambda_dt K) X_{n+1} = X_n we do:
-  * (A - lambda_dt Ks) X_{n+1} = A X_n  (multiplie both sides by A)
-  *
-  * K_{ij} = K_{ji} (hopefully)
-  * K_{ij} = cot_{ij} for i neq j where cot_{ij} is the cotangent term for edge ij
-  * K_{ij} = -sum_j cot_{ij} for i = j
-  *
-  */
+/* 
+* Implementation of "Implicit Fairing of Irregular Meshes using Diffusion and Curvature Flow"
+* Based on http://www.stanford.edu/~vkl/code/vdec.html
+*
+* Instead of (I - lambda_dt K) X_{n+1} = X_n we do:
+* (A - lambda_dt Ks) X_{n+1} = A X_n  (multiplie both sides by A)
+*
+* K_{ij} = K_{ji} (hopefully)
+* K_{ij} = cot_{ij} for i neq j where cot_{ij} is the cotangent term for edge ij
+* K_{ij} = -sum_j cot_{ij} for i = j
+*
+*/
 void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool isVolumePreservation)
 {
 	if(step == 0.0)	return;
 
-        CreateTimer(timer);
+	CreateTimer(timer);
 	printf("\n\nPerforming Mean Curvature Flow smoothing (iterations = %d, step = %f)...", numIteration, step);
 
 	mesh->flagBorderVertices();
@@ -252,20 +252,20 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 
 	if(mesh->tempUmbrellas.size() < 1)
 		mesh->getUmbrellas();
-	
+
 	U = &mesh->tempUmbrellas;
-	
+
 	// Process borders, from paper's suggestion of virtual center point
 	treatBorders(mesh, *U);
-	
+
 	int N = U->size();
 
 	// Initialize B & X vectors
 
-        VECTOR_double b_x(N), b_y(N), b_z(N);
-        VECTOR_double X(N), Y(N), Z(N);
+	VECTOR_double b_x(N), b_y(N), b_z(N);
+	VECTOR_double X(N), Y(N), Z(N);
 	Vector<double> area (N, 0.0);
-	
+
 	double dt = step;
 	double alpha, beta, cots;
 
@@ -283,7 +283,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 			Vector<Face *> * ifaces = &(U->at(i)).ifaces;
 
 			// for each nighboring edge
-                        for(int f = 0; f < (int)ifaces->size(); f++)
+			for(int f = 0; f < (int)ifaces->size(); f++)
 				area[i] += ifaces->at(f)->area();
 
 			if(area[i] == 0) printf(".zero area."); // should not happen
@@ -296,16 +296,16 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 				{
 					int j = halfEdge->vertex(0);
 					if(j == i)	j = halfEdge->vertex(1);
-					
+
 					if(halfEdge->face(0) == NULL || halfEdge->face(1) == NULL)
 					{
 						cots = 0;
 					}
 					else
 					{
-                                                Edge e = halfEdge->edge;
-                                                alpha = halfEdge->face(0)->angleCotangent(e);
-                                                beta = halfEdge->face(1)->angleCotangent(e);
+						Edge e = halfEdge->edge;
+						alpha = halfEdge->face(0)->angleCotangent(e);
+						beta = halfEdge->face(1)->angleCotangent(e);
 
 						cots = (alpha + beta) * 0.25 * dt;
 
@@ -318,7 +318,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 						M.coeffRef(i,j) -= cots;
 						M.coeffRef(j,i) -= cots;
 					}
-						
+
 					M.coeffRef(i,i) += cots;
 				}
 			}
@@ -329,7 +329,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 				vertex = mesh->v(i);
 			else
 				vertex =  (U->at(i)).ifaces[0]->PointIndexed(i); // Special border virtual vertices
-			
+
 			X(i) = vertex->x;
 			Y(i) = vertex->y;
 			Z(i) = vertex->z;
@@ -353,33 +353,33 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 
 		// Precondition
 		DiagPreconditioner_double precond(A);
-		
-                CreateTimer(solveTime);
+
+		CreateTimer(solveTime);
 		printf("\nSolving..");
 
 		// Solve
-//		#pragma omp parallel sections
-                {
-//			#pragma omp section
+		//		#pragma omp parallel sections
+		{
+			//			#pragma omp section
 			{
-                                result = Solver::BiCG(A, X, b_x, precond, maxit_x, tol_x);
+				result = Solver::BiCG(A, X, b_x, precond, maxit_x, tol_x);
 				printf(" conv X = %s ..",(result)?"false":"true");
 			}
 
-//			#pragma omp section
+			//			#pragma omp section
 			{
-                                result = Solver::BiCG(A, Y, b_y, precond, maxit_y, tol_y);
+				result = Solver::BiCG(A, Y, b_y, precond, maxit_y, tol_y);
 				printf(" conv Y = %s ..",(result)?"false":"true");
 			}
 
-//			#pragma omp section
+			//			#pragma omp section
 			{
-                                result = Solver::BiCG(A, Z, b_z, precond, maxit_z, tol_z);
+				result = Solver::BiCG(A, Z, b_z, precond, maxit_z, tol_z);
 				printf(" conv Z = %s ..",(result)?"false":"true");
 			}
-                }
+		}
 
-                printf("\nSolve time = %d ms\n", (int)solveTime.elapsed());
+		printf("\nSolve time = %d ms\n", (int)solveTime.elapsed());
 
 		Vec center = mesh->computeCenter();
 
@@ -403,10 +403,10 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 
 		// Undo addition of virtual hole center points
 		untreatBorders(mesh, *U);
-	
+
 	}
 
-        printf("Smoothing done. (%d ms)\n", (int)timer.elapsed());
+	printf("Smoothing done. (%d ms)\n", (int)timer.elapsed());
 
 	mesh->computeNormals();
 	mesh->computeBounds();
@@ -416,7 +416,7 @@ void Smoother::MeanCurvatureFlow(Mesh * mesh, double step,int numIteration, bool
 
 void Smoother::MeanCurvatureFlowExplicit(Mesh * mesh, double step, int numIteration)
 {
-        CreateTimer(timer);
+	CreateTimer(timer);
 	printf("\n\nPerforming Mean Curvature Flow smoothing (Explicit, iterations = %d)...", numIteration);
 	Vector<Umbrella> * U;
 
@@ -449,22 +449,22 @@ void Smoother::MeanCurvatureFlowExplicit(Mesh * mesh, double step, int numIterat
 					if(j == i)	j = halfEdge->vertex(1);
 
 					double cot = 0;
-					
+
 					if(halfEdge->face(0) == NULL || halfEdge->face(1) == NULL || U->at(j).flag == VF_BORDER)
 					{
 						cot = 0;
 					}
 					else
 					{
-                                                Edge e = halfEdge->edge;
-                                                alpha = halfEdge->face(0)->angleCotangent(e);
-                                                beta = halfEdge->face(1)->angleCotangent(e);
+						Edge e = halfEdge->edge;
+						alpha = halfEdge->face(0)->angleCotangent(e);
+						beta = halfEdge->face(1)->angleCotangent(e);
 
 						cot = alpha + beta;
 
 						if(alpha == 0 || beta == 0)
 							cot = 0;				
-					
+
 						cots[i] += cot;
 					}
 
@@ -473,7 +473,7 @@ void Smoother::MeanCurvatureFlowExplicit(Mesh * mesh, double step, int numIterat
 			}
 		}
 
-                for(int i = 0; i < (int)pos.size(); i++)
+		for(int i = 0; i < (int)pos.size(); i++)
 		{
 			Vec center = mesh->vertex[i];
 
@@ -488,7 +488,7 @@ void Smoother::MeanCurvatureFlowExplicit(Mesh * mesh, double step, int numIterat
 			}
 		}
 
-                for(int i = 0; i < (int)pos.size(); i++)
+		for(int i = 0; i < (int)pos.size(); i++)
 		{
 			mesh->vertex[i] = pos[i];
 		}
@@ -502,7 +502,7 @@ void Smoother::MeanCurvatureFlowExplicit(Mesh * mesh, double step, int numIterat
 		mesh->translate(center);
 	}
 
-        printf(" done. (%d ms)\n", (int)timer.elapsed());
+	printf(" done. (%d ms)\n", (int)timer.elapsed());
 
 	mesh->computeNormals();
 	mesh->computeBounds();
@@ -526,7 +526,7 @@ void Smoother::treatBorders(Mesh * mesh, Vector<Umbrella> & U)
 		Vertex *v2, *v3;
 
 		// For each hole, fill with virtual faces
-                for(StdMap<int, Vector<int> >::iterator it = hole.begin(); it != hole.end(); it++)
+		for(StdMap<int, Vector<int> >::iterator it = hole.begin(); it != hole.end(); it++)
 		{
 			Vector<int> * points = &it->second;
 
@@ -536,7 +536,7 @@ void Smoother::treatBorders(Mesh * mesh, Vector<Umbrella> & U)
 				Vertex sum, *hole_vertex;
 
 				// Find center point
-                                for(int i = 0; i < (int)points->size(); i++)
+				for(int i = 0; i < (int)points->size(); i++)
 				{
 					//mesh->markers[mesh->v(points->at(i))] = Color4(255,0,0);
 					sum += *mesh->v(points->at(i));
@@ -548,7 +548,7 @@ void Smoother::treatBorders(Mesh * mesh, Vector<Umbrella> & U)
 				U.push_back(Umbrella(hold_detail));
 
 				// Create faces to connect each hole point
-                                for(int i = 0; i < (int)points->size(); i++)
+				for(int i = 0; i < (int)points->size(); i++)
 				{
 					v1_index = hold_detail->index;
 					v2_index = points->at(i);
@@ -574,7 +574,7 @@ void Smoother::treatBorders(Mesh * mesh, Vector<Umbrella> & U)
 				// Find umbrella around virtual point and its connected vertices
 				U[hold_detail->index].loadHalfEdgeSet();
 
-                                for(int i = 0; i < (int)points->size(); i++)
+				for(int i = 0; i < (int)points->size(); i++)
 					U[points->at(i)].loadHalfEdgeSet();
 			}
 		}

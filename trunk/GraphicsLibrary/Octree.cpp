@@ -1,3 +1,4 @@
+#include "ExtendMeshHeaders.h"
 #include "Octree.h"
 #include "SimpleDraw.h"
 
@@ -94,11 +95,69 @@ void Octree::newNode( int depth, double x, double y, double z )
 	child->build(depth + 1); // build it
 }
 
+void drawCubeTest1(BoundingBox &bb)
+{
+	Vec center = bb.center;
+	double width  = bb.xExtent;
+	double length = bb.yExtent;
+	double height = bb.zExtent;
+
+	Vec c1, c2, c3, c4;
+	Vec bc1, bc2, bc3, bc4;
+
+	c1 = Vec(width, length, height) + center;
+	c2 = Vec(-width, length, height) + center;
+	c3 = Vec(-width, -length, height) + center;
+	c4 = Vec(width, -length, height) + center;
+
+	bc1 = Vec(width, length, -height) + center;
+	bc2 = Vec(-width, length, -height) + center;
+	bc3 = Vec(-width, -length, -height) + center;
+	bc4 = Vec(width, -length, -height) + center;
+
+	testLines1.push_back(Line(c1, bc1));
+	testLines1.push_back(Line(c2, bc2));
+	testLines1.push_back(Line(c3, bc3));
+	testLines1.push_back(Line(c4, bc4));
+
+	testLines1.push_back(Line(c1, c2));
+	testLines1.push_back(Line(c2, c3));
+	testLines1.push_back(Line(c3, c4));
+	testLines1.push_back(Line(c4, c1));
+
+	testLines1.push_back(Line(bc1, bc2));
+	testLines1.push_back(Line(bc2, bc3));
+	testLines1.push_back(Line(bc3, bc4));
+	testLines1.push_back(Line(bc4, bc1));
+}
+
+
+vector<BaseTriangle*> Octree::getIntersectingTris(const Vec& v0, const Vec& v1, const Vec& v2, bool showIt)
+{
+	if(this->triangleData.size() == 0 || this->children.size() == 0)
+		return this->getTriangleData();
+
+	vector<BaseTriangle*> res;
+
+	for(int i = 0; i < (int) this->children.size(); i++)
+	{
+		if(children[i].boundingBox.containsTriangle(v0, v1, v2))
+		{
+			const vector <BaseTriangle*> &tris = children[i].getIntersectingTris(v0, v1, v2, showIt);
+
+			for(int j = 0; j < (int) tris.size(); j++)
+				res.push_back(tris[j]);
+		}
+	}
+
+	return res;
+}
+
 void Octree::build( int depth /*= 0*/ )
 {
 	if ((int)triangleData.size() > this->trianglePerNode)
 	{
-		if(depth < trianglePerNode * 0.25f)
+		if(depth < 10)
 		{
 			// Subdivide to 8 nodes
 			newNode(depth, -1, -1, -1);
@@ -278,9 +337,9 @@ BaseTriangle* Octree::findClosestTri( const Ray & ray, IndexSet & tris, Mesh * m
 	if(closestFace)
 	{
 		// set 'hitRes' to that closest hit result
-		hitRes.distance = actualMinDist;	
+		hitRes.distance = actualMinDist;        
 		hitRes.index = closestFace->index;
-		hitRes.u = u;	hitRes.v = v;
+		hitRes.u = u;   hitRes.v = v;
 		hitRes.hit = true;
 	}
 	else

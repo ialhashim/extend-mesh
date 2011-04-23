@@ -45,8 +45,8 @@ private:
 	void computeSquareValues();
 
 	Octree grid_octree;
-	Octree base_octree;
-	Octree detailed_octree;
+	Octree * base_octree;
+	Octree * detailed_octree;
 
 	Plane startPlane;
 	Plane endPlane;

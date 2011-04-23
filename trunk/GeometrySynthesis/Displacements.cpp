@@ -1,3 +1,4 @@
+#include "ExtendMeshHeaders.h"
 #include "Displacements.h"
 
 #include "SimpleDraw.h"
@@ -10,8 +11,12 @@ Displacements::Displacements(Mesh * source, Skeleton * srcSkeleton, int numberSt
 
 	CreateTimer(timer);
 
+	stats["smoothing"] = Stats("Base extraction (smoothing)");
+
 	// Create smooth stairway structure
 	stair = SmoothStairway(source, numberSteps, numIteration, smoothStepSize, isVolumePreserve);
+
+	stats["smoothing"].end();
 
 	printf("\n\n\nSmooth stairway time (%d ms).\n", (int)timer.elapsed());
 
@@ -83,7 +88,7 @@ void Displacements::computeField(int gridSquareSize, int fitMethod, int lRotate,
 
 	// Assign detailed mesh points into cylindrical grid cells
 	grid.Gridify( selectedFaces );
- 
+
 	isReady = true;
 
 	printf(".total Gridify time = %d ms\n", (int)gridifyTimer.elapsed());
