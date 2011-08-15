@@ -127,6 +127,11 @@ Vector<Vector<Point> > TextureSynthesizer::resampleAsPos(const MatrixXf & src, i
 	return tempAsPos;
 }
 
+Vector<Vector<Point> > TextureSynthesizer::asSource(const MatrixXf & src) 
+{
+	return resampleAsPos(src, src.cols());
+}
+
 void TextureSynthesizer::Print(QString message)
 {
 	print(message);

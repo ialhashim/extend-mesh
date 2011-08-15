@@ -7,6 +7,9 @@ using namespace Synth;
 #include "Matrixf.h"
 using namespace Matrixf;
 
+// Special case: regular stretch
+#include "GridMeshStretch.h"
+
 DisplacementsWidget::DisplacementsWidget(Mesh *mesh, Skeleton *s, QWidget *parent) : QWidget(parent)
 {
 	this->sourceMesh = mesh;
@@ -44,7 +47,7 @@ DisplacementsWidget::DisplacementsWidget(Mesh *mesh, Skeleton *s, QWidget *paren
 
 	buttonSmoothing = new QPushButton("Compute Base");
 	optionsLayout->addWidget(buttonSmoothing, row++, 0, 1, 3);
-	
+
 	// Separator line
 	QFrame *hline = new QFrame( this );
 	hline->setFrameStyle( QFrame::HLine | QFrame::Sunken );
@@ -99,7 +102,7 @@ DisplacementsWidget::DisplacementsWidget(Mesh *mesh, Skeleton *s, QWidget *paren
 	buttonCreateDF = new QPushButton("Create Displacement Field..");
 	layout->addWidget(buttonCreateDF);
 
-	// Visulaziation =====================================================
+	// VISUALIZATION =====================================================
 	visDockWidget = new QDockWidget("Grid Visualization", this);
 	visFrame = new QFrame(this);
 	visLayout = new QGridLayout();
@@ -139,7 +142,7 @@ DisplacementsWidget::DisplacementsWidget(Mesh *mesh, Skeleton *s, QWidget *paren
 	fillSeams = new QCheckBox("Fill seams");
 	blendSeams = new QCheckBox("Blend seams");
 	sampleSeams = new QCheckBox("Sample seams");
-	
+
 	block_size = new QSpinBox();
 	band_size = new QSpinBox();
 
@@ -148,6 +151,7 @@ DisplacementsWidget::DisplacementsWidget(Mesh *mesh, Skeleton *s, QWidget *paren
 	synthesisType->addItem("Tiling");
 	synthesisType->addItem("Patch-Based");
 	synthesisType->addItem("Nearest-neighbor interpolation");
+	synthesisType->addItem("Stretch");
 
 	block_size->setRange(4, 1024);
 	block_size->setValue(14);
@@ -213,10 +217,10 @@ DisplacementsWidget::DisplacementsWidget(Mesh *mesh, Skeleton *s, QWidget *paren
 	QObject::connect(buttonSmoothing, SIGNAL(clicked()), this, SLOT(DoSmoothing()));
 	QObject::connect(buttonCreateDF, SIGNAL(clicked()), this, SLOT(CreateDF()));
 	QObject::connect(directSynthesize, SIGNAL(clicked()), this, SLOT(DirectSynthesize()));
-	QObject::connect(this, SIGNAL(GridChanged(Grid*)), gv, SLOT(SetGrid(Grid*)));
 	QObject::connect(smooth_level, SIGNAL(sliderMoved(int)), gv, SLOT(SetLevel(int)));
 	QObject::connect(buttonTogglePatch,  SIGNAL(clicked()), gv, SLOT(ToggleShowPatch()));
 	QObject::connect(buttonTriangulate, SIGNAL(clicked()), this, SLOT(Triangulate()));
+	QObject::connect(this, SIGNAL(GridChanged(Grid*)), gv, SLOT(SetGrid(Grid*)));
 
 	this->setLayout(layout);
 
@@ -306,23 +310,23 @@ void DisplacementsWidget::CreateDF()
 void DisplacementsWidget::DirectSynthesize()
 {
 	Print("Synthesize extension..");
-        CreateTimer(allTimer);
+	CreateTimer(allTimer);
 
-        CreateTimer(textureTimer);
-        printf("\nTexture synthesis (band size %d)", band_size->value());
+	CreateTimer(textureTimer);
+	printf("\nTexture synthesis (band size %d)", band_size->value());
 
 	df->setVisibility(false);
 	user_curve->isVisible = false;
 
 	MatrixXf src = gv->getSquaresValues();
-	
+
 	float bottomPadding = 0.5f;
 
 	// Get full grid as matrix
 	/*MatrixXf fullGrid = MatrixXf::Zero(src.rows() + (src.rows() * bottomPadding), src.cols());
 	fullGrid.block(0,0,src.rows(),src.cols()) = src;
 	fullGrid.block(src.rows(), 0, fullGrid.rows() - src.rows(), src.cols()) = src.block(0,0,fullGrid.rows() - src.rows(), src.cols());
-			
+
 	fullGrid -= MatrixXf::Constant(fullGrid.rows(), fullGrid.cols(), df->Grid()->min_height[0]);
 
 	fullGrid.array() *= 255;*/
@@ -360,7 +364,7 @@ void DisplacementsWidget::DirectSynthesize()
 		textureSynthResult = ts.synthesizeAsPos(grid, (src.rows() * bottomPadding),
 			expectedExtension, block_size->value(), band_size->value());
 	}
-	else if(synthesisType->currentText() == "Nearest-neighbor interpolation")
+	else if(synthesisType->currentText() == "Nearest-neighbor interpolation") // bad..
 	{
 		textureSynthResult = ts.resampleAsPos(grid, expectedExtension);
 	}
@@ -368,13 +372,17 @@ void DisplacementsWidget::DirectSynthesize()
 	{
 		textureSynthResult = ts.tileAsPos(grid, expectedExtension, band_size->value());
 	}
+	else if(synthesisType->currentText() == "Stretch")
+	{
+		textureSynthResult = ts.asSource(grid);
+	}
 
 	stats["textureSynthesis"].end();
 
 	// Timing for Texture synthesis
-        printf(".Done (%d ms)", (int)textureTimer.elapsed());
+	printf(".Done (%d ms)", (int)textureTimer.elapsed());
 
-        CreateTimer(extentionTimer);
+	CreateTimer(extentionTimer);
 	printf("\n\n\n==========\nCreate extension..\n");
 
 	int midSkeleIndex = skeleton->originalSelectedEdges.size() / 2;
@@ -397,16 +405,29 @@ void DisplacementsWidget::DirectSynthesize()
 		df->GetGrid()->item_int["tileCount"] = ts.tileCount;
 	}
 
-	// Create extension part
-	gmesh.push_back(GridMesh(df->GetGrid(), cropArea, user_curve->getSpline(), 
-		textureSynthResult, 
-		synthCrossSections->isChecked(), blendCrossSections->isChecked(), 
-		band_size->value(), changeProfile->isChecked(), 
-		fillSeams->isChecked(), blendSeams->isChecked(), sampleSeams->isChecked()));
+	// =========================================================================
+	// ========                  Create extension part                 =========
+	// =========================================================================
 
-	// cleaner code
+	// Regular stretching is a special
+	if(synthesisType->currentText() != "Stretch")
+	{
+		gmesh.push_back(GridMesh(df->GetGrid(), cropArea, user_curve->getSpline(), 
+			textureSynthResult, synthCrossSections->isChecked(), blendCrossSections->isChecked(), 
+			band_size->value(), changeProfile->isChecked(),fillSeams->isChecked(), 
+			blendSeams->isChecked(), sampleSeams->isChecked()));
+	}
+	else
+	{
+		gmesh.push_back(GridMeshStretch(df->GetGrid(), cropArea, user_curve->getSpline(), 
+			textureSynthResult, synthCrossSections->isChecked(), blendCrossSections->isChecked(), 
+			band_size->value(), changeProfile->isChecked(),fillSeams->isChecked(), 
+			blendSeams->isChecked(), sampleSeams->isChecked()));
+	}
+
+	// for cleaner code
 	GridMesh * gm = &gmesh.back();
-	
+
 	// Show cross-section and large scale detail synthesized result
 	csExtendedImage->setPixmap( pixmapFromMatrix(gm->extendedSections) );
 	//lsExtendedImage->setPixmap( QPixmap::fromImage(imageFromMatrix(resizeAsImage(ls_pattern, ls_pattern.cols() * 5), true)) );
@@ -419,18 +440,18 @@ void DisplacementsWidget::DirectSynthesize()
 	Mesh * m = getMesh("LoadedMesh");
 
 	// Timing
-        printf("\n\nDone (%d ms)\n==========\n\n", (int)extentionTimer.elapsed());
+	printf("\n\nDone (%d ms)\n==========\n\n", (int)extentionTimer.elapsed());
 
-        CreateTimer(sliceTimer);
+	CreateTimer(sliceTimer);
 	printf("Slicing and moving..");
 
 	if(!isMeshCut)
 	{
 		// slice the mesh
 		Plane slicePlane = df->GetGrid()->getMidPlane();
-                Vector<int> selectedFaces = skeleton->getSelectedFaces();
-                sliceOp = Slicer::SliceAt(m, selectedFaces, slicePlane);
-		
+		Vector<int> selectedFaces = skeleton->getSelectedFaces();
+		sliceOp = Slicer::SliceAt(m, selectedFaces, slicePlane);
+
 		// Make sure all half of the mesh is selected
 		newPoints = sliceOp.newPoints.ToVector();
 		cutPoints = sliceOp.cutPoints.ToVector();
@@ -447,7 +468,7 @@ void DisplacementsWidget::DirectSynthesize()
 		}
 
 		halfMesh = SET_TO_VECTOR(halfMeshSet);
-		
+
 		//DEBUG by coloring
 		//m->setColor(0,255,0); m->setColor(halfMesh, 255,0,0);
 
@@ -464,8 +485,8 @@ void DisplacementsWidget::DirectSynthesize()
 	// Transform half mesh
 	Transform3D::transformVertices(m, halfMesh, gm->endTransform());
 
-        printf("done slice/move (%d ms).", (int)sliceTimer.elapsed());
-        CreateTimer(otherTimer);
+	printf("done slice/move (%d ms).", (int)sliceTimer.elapsed());
+	CreateTimer(otherTimer);
 	printf(".Remaining..");
 
 	// Set render options
@@ -479,13 +500,12 @@ void DisplacementsWidget::DirectSynthesize()
 	mainWindow->ui.viewer->setSceneRadius(m->radius);
 	mainWindow->ui.viewer->update();
 
-        printf("done remaining (%d ms). Synthesize extension Done.\n", (int)otherTimer.elapsed());
+	printf("done remaining (%d ms). Synthesize extension Done.\n", (int)otherTimer.elapsed());
 
-        QString timeAsString; timeAsString.sprintf("Synthesis Done. (%.2f s)", ((int)allTimer.elapsed()) / 1000.0f);
+	QString timeAsString; timeAsString.sprintf("Synthesis Done. (%.2f s)", ((int)allTimer.elapsed()) / 1000.0f);
 	Print(timeAsString, 1000);
 
-	stats["extendAmount"] = Stats("Amount of extension", 
-		100.0 * ((float)textureSynthResult[0].size() / grid.cols()));
+	stats["extendAmount"] = Stats("Amount of extension", 100.0 * ((float)textureSynthResult[0].size() / grid.cols()));
 
 	// Preview texture synthesis result
 	outputImage->setPixmap(QPixmap::fromImage(ts.imageOutput()));
@@ -502,7 +522,7 @@ void DisplacementsWidget::DirectSynthesize()
 
 void DisplacementsWidget::Triangulate()
 {
-        CreateTimer(outputTimer);
+	CreateTimer(outputTimer);
 	printf("\nMerging & Outputting...");
 
 	// Get the mesh
@@ -527,7 +547,7 @@ void DisplacementsWidget::Triangulate()
 		if(fromBorderFacesA.find(f) != fromBorderFacesA.end())
 			detachFacesA_original.insert(f);
 	}
-	
+
 	// Add faces with all vertices being on cut (A)
 	StdSet<Face *> cutNeighbourhoodA;
 	foreach(int vi, firstCut) foreach(Face * f, mesh->vd(vi)->ifaces) cutNeighbourhoodA.insert(f);
@@ -649,8 +669,8 @@ void DisplacementsWidget::Triangulate()
 
 	outMesh.removeAllFaces(removeSet);
 
-        printf("\n\nOutput Done. (%d ms)\n=========\n", (int)outputTimer.elapsed());
-	
+	printf("\n\nOutput Done. (%d ms)\n=========\n", (int)outputTimer.elapsed());
+
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Output Mesh"), "", tr("OBJ (*.obj)"));
 
 	outMesh.saveToFile(fileName.toAscii());

@@ -297,6 +297,8 @@ void GridMesh::Synthesize(Vector<Vector<Point> > & synthOutput)
 	// Reconstruction of elements
 	recon_points = Vector<Vector<HashMap<int, Vec> > >(totalHeight, Vector<HashMap<int, Vec> >(totalWidth));
 
+	int countRecon = 0;
+
 	// For each square, reconstruct all points
 	for(int v = 0; v < totalWidth; v++)
 	{
@@ -308,6 +310,8 @@ void GridMesh::Synthesize(Vector<Vector<Point> > & synthOutput)
 
 				// Used for triangulation
 				recon_points[u][v][p->corrPoint] = point;
+
+				countRecon++;
 			}
 		}
 	}
@@ -383,7 +387,7 @@ void GridMesh::Triangulate()
 	CreateTimer(patchTimer);
 
 	// Create patches as triangulated meshes
-#pragma omp parallel for
+	#pragma omp parallel for
 	for(int w = 0; w < (int)tri_patch.size(); w++)
 		tri_patch[w].makeMesh();
 
@@ -805,6 +809,9 @@ void GridMesh::findCutPoints()
 
 Transformation GridMesh::endTransform()
 {
+	if(!tri_patch.size())
+		return Transformation(1.0,Rotation(),Vec());
+
 	// Get mesh and patches
 	Mesh * mesh = grid->getDetailedMesh();
 	MeshPatch * lastPatch = &tri_patch.back();
@@ -981,10 +988,15 @@ void GridMesh::draw()
 			// DRAW SQUARES
 			Vector<Vector<Vec> > patchSquares(patch->size(), Vector<Vec>(4));
 			int sc = 0;
-			for(Vector<SimpleSquare>::iterator it = patch->begin(); it != patch->end(); it++){
+			for(Vector<SimpleSquare>::iterator it = patch->begin(); it != patch->end(); it++)
+			{
 				GridSquare * s = &square[it->u][it->v];
-				patchSquares[sc][0] = c[s->p[0]];	patchSquares[sc][1] = c[s->p[1]];
-				patchSquares[sc][2] = c[s->p[2]];	patchSquares[sc][3] = c[s->p[3]];
+
+				patchSquares[sc][0] = c[s->p[0]];	
+				patchSquares[sc][1] = c[s->p[1]];
+				patchSquares[sc][2] = c[s->p[2]];	
+				patchSquares[sc][3] = c[s->p[3]];
+
 				sc++;
 			}
 			SimpleDraw::DrawSquares(patchSquares, true, color.r(), color.g(), color.b(), 0.25f);

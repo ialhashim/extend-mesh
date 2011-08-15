@@ -136,6 +136,50 @@ namespace Matrixf
 		return resizeAsImage(fromVector2Df(v), newWidth, isWithBias);
 	}
 
+	double stretchFunction(double x, double src_width, double width, double alpha)
+	{
+		double ratio = width / src_width;
+
+		if(ratio <= 1.0) 
+			return x;
+
+		double w = 1.0 - ratio;
+		double r = x * ratio;
+
+		double startRatio = alpha / ratio;
+		double endRatio = 1.0 - startRatio;
+
+		if(x < startRatio)	return r;
+		if(x > endRatio)	return r + w;
+
+		double srcRange = 0.5 - startRatio;
+		double newRange = 0.5 - alpha;
+		double midRatio = newRange / srcRange;
+
+		if(x < 0.5)
+		{
+			double z = (x - startRatio) * midRatio;
+			return z + alpha;
+		}
+		else
+		{
+			double z = (x - 0.5) * midRatio;
+			return z + 0.5;
+		}
+
+		return x;
+	}
+
+	Vector<double> stretchFunctionVec(double src_width, double width, double alpha)
+	{
+		Vector<double> result;
+
+		for(int i = 0; i < width; i++)
+			result.push_back( stretchFunction((double)i / width, src_width, width, alpha) );
+
+		return result;
+	}
+
 	MatrixXf resizeAsImage(const MatrixXf & src, int new_width, bool isWithBias)
 	{
 		MatrixXf result = MatrixXf::Zero(src.rows(), new_width);
@@ -154,6 +198,8 @@ namespace Matrixf
 		double f1 = bias(1);
 		double fN = f1 - f0;
 
+		Vector<double> stretchBias = stretchFunctionVec(width, newWidth, 0.20);
+
 		for(int y = 0; y < height; y++)
 		{
 			for(float x = 0; x < newWidth; x++)
@@ -164,9 +210,9 @@ namespace Matrixf
 				// useful?
 				if(isWithBias) 
 				{
-					double X = (bias(x / newWidth) - f0) / fN;
+					//double X = (bias(x / newWidth) - f0) / fN;
 
-					dX = RANGED(0,X,1) * width;
+					dX = RANGED(0, stretchBias[x], 1) * width;
 				}
 
 				dX = RANGED(0.0, dX, newWidth - 1);
