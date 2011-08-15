@@ -49,8 +49,11 @@ namespace Synth
 
 			int tileCount;
 
-			// Basic resampling
+			// Basic re-sampling
 			Vector<Vector<Point> > resampleAsPos(const MatrixXf & src, int width);
+
+			// No re-sampling
+			Vector<Vector<Point> > asSource(const MatrixXf & src);
 
 			float extendRatio();
 

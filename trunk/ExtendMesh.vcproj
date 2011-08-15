@@ -60,7 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib lib\GLee.lib qtmain.lib QtCore4.lib QtGui4.lib QtXml4.lib QtOpenGL4.lib Solver\SparseLib++\lib\sparselib.lib $(QGLVIEWERROOT)\QGLViewer\release\QGLViewer2.lib"
+				AdditionalDependencies="lib\GLee.lib qtmain.lib QtCore4.lib QtGui4.lib QtXml4.lib QtOpenGL4.lib Solver\SparseLib++\lib\sparselib.lib $(QGLVIEWERROOT)\QGLViewer\release\QGLViewer2.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
 				IgnoreDefaultLibraryNames="libc.lib"
@@ -131,7 +131,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib lib\GLee.lib qtmaind.lib QtCored4.lib QtGuid4.lib QtXmld4.lib QtOpenGLd4.lib Solver\SparseLib++\lib\sparselibd.lib $(QGLVIEWERROOT)\QGLViewer\debug\QGLViewerd2.lib"
+				AdditionalDependencies="lib\GLee.lib qtmaind.lib QtCored4.lib QtGuid4.lib QtXmld4.lib QtOpenGLd4.lib Solver\SparseLib++\lib\sparselibd.lib $(QGLVIEWERROOT)\QGLViewer\debug\QGLViewerd2.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
 				IgnoreDefaultLibraryNames="libc.lib"
@@ -1106,6 +1106,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\GeometrySynthesis\GridMeshStretch.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GeometrySynthesis\GridMeshStretch.h"
+				>
+			</File>
+			<File
 				RelativePath=".\GeometrySynthesis\GridPoint.h"
 				>
 			</File>
@@ -1252,7 +1260,7 @@
 		/>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.7.1"
+			Value="4.7.3"
 		/>
 		<Global
 			Name="RccDir"

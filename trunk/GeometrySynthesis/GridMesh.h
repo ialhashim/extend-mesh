@@ -14,7 +14,7 @@ class Blender;
 
 class GridMesh
 {
-private:
+protected:
 	Vector<Vector<GridSquare> > square;
 
 	Vector<Vec> c;							// grid square points
@@ -72,7 +72,7 @@ private:
 	Vector<Vector<SimpleSquare> > unroll(const Vector<SimpleSquare> & patch, int & start_x, int & start_y);
 	Vector<SimpleSquare> findPatchBorders( const Vector<Vector<SimpleSquare> > & patch, int thickness = 1);
 
-        Vector<Vector<HashMap<int, Vec> > > recon_points; // reconstructed points
+	Vector<Vector<HashMap<int, Vec> > > recon_points; // reconstructed points
 
 	// Extension properties
 	Vector<Vec> extensionPath;
@@ -87,12 +87,13 @@ private:
 
 public:
 	GridMesh(Grid * src_grid, const Rect & cropArea,
-                Spline * curve, std::vector<std::vector<Point> > & synthOutput,
+		Spline * curve, std::vector<std::vector<Point> > & synthOutput,
 		bool isSynthesizeCS,  bool isBlendCrossSections, int bandSize, bool isChangeProfile, 
 		bool isFillSeams, bool isBlendSeams, bool isSampleSeams);
+	GridMesh(){};
 	~GridMesh();
 
-        void Synthesize(std::vector<std::vector<Point> > & synthOutput);
+	void Synthesize(std::vector<std::vector<Point> > & synthOutput);
 	void Triangulate();
 	void BlendPatches();
 
@@ -132,7 +133,7 @@ public:
 	void ToggleWireframe();
 	void ToggleShowColoredPatches();
 
-	// Testing stiching
+	// Testing stitching
 	void outputGridMesh();
 
 	GridSquare * getSquareFromStart(int src_u, int start_u, int src_v, int start_v);
