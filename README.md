@@ -15,7 +15,7 @@ A proposed interactive and simple method that creates model variations by applyi
  * Example models are provided. Open a mesh and click 'SHIFT' at two different parts to select a region of interest. Then press 'ALT' and draw a curve to extend that part.
 
 ##Real-Time Editing Sessions
-<wiki:video url="http://www.youtube.com/watch?v=VAXm7Wm-R7c"/>
+https://www.youtube.com/watch?v=VAXm7Wm-R7c
 
 ##Publication
 
